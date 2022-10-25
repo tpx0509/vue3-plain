@@ -73,11 +73,6 @@ var VueReactivity = (() => {
     if (!deps) {
       depMaps.set(key, deps = /* @__PURE__ */ new Set([]));
     }
-    let shouldTract = !deps.has(activeEffect);
-    if (shouldTract) {
-      deps.add(activeEffect);
-      activeEffect.deps.push(deps);
-    }
     trackEffect(deps);
     console.log("\u4F9D\u8D56\u6536\u96C6map", targetDeps);
   }

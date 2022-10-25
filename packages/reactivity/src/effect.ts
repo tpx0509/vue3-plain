@@ -53,12 +53,6 @@ export function track(target,key,type) {
      if(!deps) {
         depMaps.set(key,deps = new Set([]))
      }
-     let shouldTract = !deps.has(activeEffect)
-     if(shouldTract) {
-        deps.add(activeEffect)
-        // 反向记忆，属性存储了依赖的effect，让effect也存储他依赖的属性
-        activeEffect.deps.push(deps)
-     }
      trackEffect(deps)
      console.log('依赖收集map',targetDeps)
 }
