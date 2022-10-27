@@ -12,6 +12,7 @@ export function patchEvent(el,eventName,nextValue) {
      let invokers = el._vei || (el._vei = {})
 
      let exits = invokers[eventName]
+     let event = eventName.slice(2).toLowerCase()
      if(exits) {
         // 已经绑定过事件了
         if(nextValue) {
@@ -23,7 +24,7 @@ export function patchEvent(el,eventName,nextValue) {
         }
      }else {
         // 第一次绑定
-        let event = eventName.slice(2).toLowerCase()
+        
         if(nextValue) {
             const invoker = invokers[eventName] = createInvoker(nextValue)
             el.addEventListener(event,invoker)

@@ -70,23 +70,18 @@ var VueRuntimeDOM = (() => {
 
   // packages/runtime-core/src/renderer.ts
   function createRenderer(renderOptions2) {
-    const patch = (n1, n2, container) => {
-      if (n1 === n2)
-        return;
-      if (n1 === null) {
-        let { type, shapeFlag } = n2;
-        switch (type) {
-          case Text:
-            processText(null, n2, container);
-            break;
-          default:
-            if (shapeFlag & 1 /* ELEMENT */) {
-              mountElement(n2, container);
-            }
-        }
-      } else {
-      }
-    };
+    const {
+      insert: hostInsert,
+      remove: hostRemove,
+      setElementText: hostSetElementText,
+      setText: hostSetText,
+      querySelector: hostQuerySelector,
+      parentNode: hostParentNode,
+      nextsibling: hostNextSibling,
+      createElement: hostCreateElement,
+      createText: hostCreateText,
+      patchProp: hostPatchProp
+    } = renderOptions2;
     const processText = (n1, n2, container) => {
       if (n1 === null) {
         hostInsert(n2.el = hostCreateText(n2.children), container);
@@ -120,18 +115,26 @@ var VueRuntimeDOM = (() => {
       }
       hostInsert(el, container);
     };
-    const {
-      insert: hostInsert,
-      remove: hostRemove,
-      setElementText: hostSetElementText,
-      setText: hostSetText,
-      querySelector: hostQuerySelector,
-      parentNode: hostParentNode,
-      nextsibling: hostNextSibling,
-      createElement: hostCreateElement,
-      createText: hostCreateText,
-      patchProp: hostPatchProp
-    } = renderOptions2;
+    const processElement = (n1, n2, container) => {
+      if (n1 === null) {
+        mountElement(n2, container);
+      } else {
+      }
+    };
+    const patch = (n1, n2, container) => {
+      if (n1 === n2)
+        return;
+      let { type, shapeFlag } = n2;
+      switch (type) {
+        case Text:
+          processText(null, n2, container);
+          break;
+        default:
+          if (shapeFlag & 1 /* ELEMENT */) {
+            processElement(n1, n2, container);
+          }
+      }
+    };
     const unmount = (vnode) => {
       hostRemove(vnode.el);
     };
@@ -234,6 +237,7 @@ var VueRuntimeDOM = (() => {
   function patchEvent(el, eventName, nextValue) {
     let invokers = el._vei || (el._vei = {});
     let exits = invokers[eventName];
+    let event = eventName.slice(2).toLowerCase();
     if (exits) {
       if (nextValue) {
         exits.value = nextValue;
@@ -242,10 +246,9 @@ var VueRuntimeDOM = (() => {
         invokers[eventName] = void 0;
       }
     } else {
-      let event2 = eventName.slice(2).toLowerCase();
       if (nextValue) {
         const invoker = invokers[eventName] = createInvoker(nextValue);
-        el.addEventListener(event2, invoker);
+        el.addEventListener(event, invoker);
       }
     }
   }

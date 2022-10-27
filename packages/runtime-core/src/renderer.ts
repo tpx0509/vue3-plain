@@ -2,66 +2,6 @@ import { isString, ShapeFlags } from '@vue/shared';
 import { createVnode, Text } from './vnode';
 // 创建渲染器
 export function createRenderer(renderOptions) {
-   const patch = (n1,n2,container) => {
-      if(n1 === n2) return;
-       if(n1 === null) {
-         let { type,shapeFlag} = n2
-         // 初次渲染，直接挂载即可
-         switch(type) {
-             case Text : // 处理文本的
-               processText(null,n2,container)
-               break;
-            default :
-            // 元素的初次渲染
-             if(shapeFlag & ShapeFlags.ELEMENT) {
-               mountElement(n2,container)
-             }
-             // 后续还有组件的初次渲染...
-         }
-       }else {
-          // 更新流程
-       }
-   }
-
-   const processText = (n1,n2,container) => {
-       if(n1 === null) {
-         // n2的children就是文本字符串了
-         hostInsert(n2.el = hostCreateText(n2.children),container)
-       }else {
-          // 更新流程
-       }
-   }
-   const normalize = (child) => {
-      if(isString(child)) {
-         return createVnode(Text,null,child)
-      }
-      return child
-  }
-   const mountChildren = (children,container) => {
-       for(let i=0; i< children.length; i++) {
-         let child = normalize(children[i])
-          patch(null,child,container)
-       }
-   }
-   
-   const mountElement = (vnode,container) => {
-      let { type,props,children,shapeFlag } = vnode
-      let el = vnode.el = hostCreateElement(type) // 将真实元素挂在到这个虚拟节点上，后续用于复用节点和更新
-
-      if(props) {
-          for(let key in props) {
-            hostPatchProp(el,key,null,props[key])
-          }
-      }
-      // 孩子可能是数组或文本（字符串）
-      if(shapeFlag & ShapeFlags.TEXT_CHILDREN) { // 文本
-         hostSetElementText(el,children)
-      }else if( shapeFlag & ShapeFlags.ARRAY_CHILDREN) { // 数组
-         mountChildren(children,el)
-      }
-
-      hostInsert(el,container)
-   }
    const {
       // 增加 删除 修改 查询..
       insert:hostInsert,
@@ -77,7 +17,73 @@ export function createRenderer(renderOptions) {
       createText : hostCreateText,
       patchProp:hostPatchProp
      } = renderOptions
+   const processText = (n1,n2,container) => {
+      if(n1 === null) {
+        // n2的children就是文本字符串了
+        hostInsert(n2.el = hostCreateText(n2.children),container)
+      }else {
+         // 更新流程
+      }
+  }
+  const normalize = (child) => {
+     if(isString(child)) {
+        return createVnode(Text,null,child)
+     }
+     return child
+ }
+  const mountChildren = (children,container) => {
+      for(let i=0; i< children.length; i++) {
+        let child = normalize(children[i])
+         patch(null,child,container)
+      }
+  }
+  
+  const mountElement = (vnode,container) => {
+     let { type,props,children,shapeFlag } = vnode
+     let el = vnode.el = hostCreateElement(type) // 将真实元素挂在到这个虚拟节点上，后续用于复用节点和更新
 
+     if(props) {
+         for(let key in props) {
+           hostPatchProp(el,key,null,props[key])
+         }
+     }
+     // 孩子可能是数组或文本（字符串）
+     if(shapeFlag & ShapeFlags.TEXT_CHILDREN) { // 文本
+        hostSetElementText(el,children)
+     }else if( shapeFlag & ShapeFlags.ARRAY_CHILDREN) { // 数组
+        mountChildren(children,el)
+     }
+     hostInsert(el,container)
+  }
+ 
+  const processElement = (n1,n2,container) => {
+      if(n1 === null) {
+         // 初次渲染，直接挂载即可
+         mountElement(n2,container)
+
+      }else {
+         // 更新流程
+      //   patchElement()
+      }
+  }
+
+   const patch = (n1,n2,container) => {
+      if(n1 === n2) return;
+
+      let { type,shapeFlag} = n2
+      
+      switch(type) {
+            case Text : // 处理文本的
+            processText(null,n2,container)
+            break;
+         default :
+         // 元素的初次渲染
+            if(shapeFlag & ShapeFlags.ELEMENT) {
+               processElement(n1,n2,container)
+            }
+            // 后续还有组件的初次渲染...
+      }
+   }
      const unmount = (vnode) => {
         hostRemove(vnode.el)
      }
