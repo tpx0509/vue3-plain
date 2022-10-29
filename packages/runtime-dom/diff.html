@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .aaa {
+             font-size : 90px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer,h,render,Text } = VueRuntimeDOM
+
+        // // sync with start
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c'),
+        //     h('p',{ key : 'd'},'d')
+        // ]),app)
+        // },1000)
+
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
+            
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue',fontSize:'20px' },onclick:() => alert(12) },[
+        //     h('p',{ key : 'd'},'d'),
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // },1000)
+            
+        
+
+
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
+            
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c'),
+        //     h('p',{ key : 'd'},'d')
+        // ]),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // },1000)
+
+        render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
+            h('p',{ key : 'd'},'d'),
+            h('p',{ key : 'a'},'a'),
+            h('p',{ key : 'b'},'b'),
+            h('p',{ key : 'c'},'c'),
+            
+        ]),app)
+        setTimeout(() => {
+            render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },[
+            h('p',{ key : 'a'},'a'),
+            h('p',{ key : 'b'},'b'),
+            h('p',{ key : 'c'},'c')
+        ]),app)
+        },1000)
+
+        // 未通过
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'd'},'d'),
+        //     h('p',{ key : 'e'},'e')
+        // ]),app)
+        // },1000)
+
+        // 未通过
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[ 
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'ce'},'ce')
+        // ]),app)
+        // },1000)
+
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },[
+        //     h('p',{ key : 'd'},'d'),
+        //     h('p',{ key : 'e'},'e'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // },1000)
+        
+    </script>
+</body>
+</html>

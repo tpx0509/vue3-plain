@@ -50,7 +50,7 @@ export function createRenderer(renderOptions) {
     }
   }
 
-  const mountElement = (vnode, container) => {
+  const mountElement = (vnode, container,anchor) => {
     let { type, props, children, shapeFlag } = vnode;
     let el = (vnode.el = hostCreateElement(type)); // 将真实元素挂在到这个虚拟节点上，后续用于复用节点和更新
 
@@ -67,13 +67,13 @@ export function createRenderer(renderOptions) {
       // 数组
       mountChildren(children, el);
     }
-    hostInsert(el, container);
+    hostInsert(el, container,anchor);
   };
 
-  const processElement = (n1, n2, container) => {
+  const processElement = (n1, n2, container,anchor) => {
     if (n1 === null) {
       // 初次渲染，直接挂载即可
-      mountElement(n2, container);
+      mountElement(n2, container,anchor);
     } else {
       patchElement(n1,n2)
       
@@ -125,6 +125,7 @@ export function createRenderer(renderOptions) {
         if(shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
            // diff 数组 数组
            console.log('diff')
+           patchKeyedChildren(c1,c2,el)
         }else {
            // 新的为空，
            unmountChildren(c1)
@@ -143,7 +144,72 @@ export function createRenderer(renderOptions) {
       }
     }
   }
-  const patch = (n1, n2, container) => {
+
+  const patchKeyedChildren = (c1,c2,el) => { // 比较两个儿子的差异
+      let i=0;
+      let e1 = c1.length-1;
+      let e2 = c2.length-1;
+      // sync from start
+      while(i <= e1 && i<= e2) { // 新老元素有任何一方遍历完就停止
+        const n1 = c1[i]
+        const n2 = c2[i]
+         if(isSameVnode(n1,n2)) {
+            patch(n1,n2,el) // 比较两个节点的属性和子节点
+         }else {
+          break;
+         }
+         i++
+      }
+      console.log(i,e1,e2) // 尽可能减少比较的内容
+      // sync from end
+      while(i<=e1 && i<= e2) {
+        const n1 = c1[e1]
+        const n2 = c2[e2]
+         if(isSameVnode(n1,n2)) {
+            patch(n1,n2,el) // 比较两个节点的属性和子节点
+         }else {
+          break;
+         }
+         e1--;
+         e2--;
+      }
+      console.log(i,e1,e2) // 尽可能减少比较的内容
+      // common sequence + mount 同序列挂载
+
+       
+      // i要比e1大说明有新增的
+      // i和e2之间的是新增的部分
+      
+      if(i > e1) {
+         if(i <= e2) {
+            while(i <= e2) { // 要添加的元素就是i到e2之间
+              // 具体添加的位置是往后面添加还是往前面添加，要看i的后面还有没有元素(是否有参照物)
+              let nextPos = i + 1
+              let anchor = nextPos < c2.length ? c2[nextPos].el : null;
+              patch(null,c2[i],el,anchor) // 创造新节点，扔到容器中
+              i++
+            }
+         }
+      }
+      // common sequence + unmount 同序列卸载
+      // i比e2大说明有要删除的的
+      // i和e1之间的是删除的部分
+      else if(i > e2) {
+        if(i <= e1) {
+          while(i <= e1) {
+             unmount(c1[i])
+             i++
+          }
+       }
+    }
+
+     
+      
+      
+
+      
+  }
+  const patch = (n1, n2, container,anchor=null) => {
     if (n1 === n2) return;
 
     if(n1 && !isSameVnode(n1,n2)) {
@@ -160,7 +226,7 @@ export function createRenderer(renderOptions) {
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
-          processElement(n1, n2, container);
+          processElement(n1, n2, container,anchor);
         }
       // 后续还有组件的渲染...
     }
