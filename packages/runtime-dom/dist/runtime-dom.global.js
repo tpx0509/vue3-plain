@@ -24,6 +24,7 @@ var VueRuntimeDOM = (() => {
     createRenderer: () => createRenderer,
     createVnode: () => createVnode,
     h: () => h,
+    isSameVnode: () => isSameVnode,
     isVnode: () => isVnode,
     render: () => render
   });
@@ -39,10 +40,85 @@ var VueRuntimeDOM = (() => {
     return Array.isArray(params);
   };
 
+  // packages/runtime-dom/src/modules/attr.ts
+  function patchAttr(el, key, value) {
+    if (value) {
+      el.setAttribute(key, value);
+    } else {
+      el.removeAttribute(key);
+    }
+  }
+
+  // packages/runtime-dom/src/modules/class.ts
+  function patchClass(el, name) {
+    if (name === null) {
+      el.removeAttribute("class");
+    } else {
+      el.className = name;
+    }
+  }
+
+  // packages/runtime-dom/src/modules/event.ts
+  function createInvoker(callback) {
+    const invoker = (e) => invoker.value();
+    invoker.value = callback;
+    return invoker;
+  }
+  function patchEvent(el, eventName, nextValue) {
+    let invokers = el._vei || (el._vei = {});
+    let exits = invokers[eventName];
+    let event = eventName.slice(2).toLowerCase();
+    if (exits) {
+      if (nextValue) {
+        exits.value = nextValue;
+      } else {
+        el.removeEventListener(event, exits);
+        invokers[eventName] = void 0;
+      }
+    } else {
+      if (nextValue) {
+        const invoker = invokers[eventName] = createInvoker(nextValue);
+        el.addEventListener(event, invoker);
+      }
+    }
+  }
+
+  // packages/runtime-dom/src/modules/style.ts
+  function patchStyle(el, prevValue, nextValue) {
+    if (nextValue) {
+      for (let key in nextValue) {
+        el.style[key] = nextValue[key];
+      }
+    }
+    if (prevValue) {
+      for (let key in prevValue) {
+        if (nextValue[key] == null) {
+          el.style[key] = null;
+        }
+      }
+    }
+  }
+
+  // packages/runtime-dom/src/patchProp.ts
+  function patchProp(el, key, prevValue, nextValue) {
+    if (key === "class") {
+      patchClass(el, nextValue);
+    } else if (key === "style") {
+      patchStyle(el, prevValue, nextValue);
+    } else if (/^on[^a-z]/.test) {
+      patchEvent(el, key, nextValue);
+    } else {
+      patchAttr(el, key, nextValue);
+    }
+  }
+
   // packages/runtime-core/src/vnode.ts
   var Text = Symbol("Text");
   function isVnode(value) {
     return !!(value == null ? void 0 : value.__v_isVnode);
+  }
+  function isSameVnode(n1, n2) {
+    return n1.type === n2.type && n1.key === n2.key;
   }
   function createVnode(type, props, children = null) {
     let shapeFlag = isString(type) ? 1 /* ELEMENT */ : 0;
@@ -86,18 +162,28 @@ var VueRuntimeDOM = (() => {
       if (n1 === null) {
         hostInsert(n2.el = hostCreateText(n2.children), container);
       } else {
+        const el = n2.el = n1.el;
+        if (n1.children !== n2.children) {
+          hostSetText(el, n2.children);
+        }
       }
     };
-    const normalize = (child) => {
-      if (isString(child)) {
-        return createVnode(Text, null, child);
+    const normalize = (child, i) => {
+      let children = child[i];
+      if (isString(children)) {
+        children = child[i] = createVnode(Text, null, children);
       }
-      return child;
+      return children;
     };
     const mountChildren = (children, container) => {
       for (let i = 0; i < children.length; i++) {
-        let child = normalize(children[i]);
+        let child = normalize(children, i);
         patch(null, child, container);
+      }
+    };
+    const unmountChildren = (children) => {
+      for (let i = 0; i < children.length; i++) {
+        unmount(children[i]);
       }
     };
     const mountElement = (vnode, container) => {
@@ -119,15 +205,68 @@ var VueRuntimeDOM = (() => {
       if (n1 === null) {
         mountElement(n2, container);
       } else {
+        patchElement(n1, n2);
+      }
+    };
+    const patchProps = (oldProps, newProps, el) => {
+      for (let key in newProps) {
+        patchProp(el, key, oldProps[key], newProps[key]);
+      }
+      for (let key in oldProps) {
+        if (newProps[key] == null) {
+          patchProp(el, key, oldProps[key], null);
+        }
+      }
+    };
+    const patchElement = (n1, n2) => {
+      const el = n2.el = n1.el;
+      let oldProps = n1.props || {};
+      let newProps = n2.props || {};
+      patchProps(oldProps, newProps, el);
+      patchChildren(n1, n2, el);
+    };
+    const patchChildren = (n1, n2, el) => {
+      let c1 = n1.children;
+      let c2 = n2.children;
+      let prevShapeFlag = n1.shapeFlag;
+      let shapeFlag = n2.shapeFlag;
+      if (shapeFlag & 8 /* TEXT_CHILDREN */) {
+        if (prevShapeFlag & 16 /* ARRAY_CHILDREN */) {
+          unmountChildren(c1);
+        }
+        if (c1 !== c2) {
+          hostSetElementText(el, c2);
+        }
+      } else {
+        if (prevShapeFlag & 16 /* ARRAY_CHILDREN */) {
+          if (shapeFlag & 16 /* ARRAY_CHILDREN */) {
+            console.log("diff");
+          } else {
+            unmountChildren(c1);
+          }
+        } else {
+          console.log("\u8001\u7684\u4E3A\u6587\u672C\u6216\u7A7A");
+          if (prevShapeFlag & 8 /* TEXT_CHILDREN */) {
+            hostSetElementText(el, "");
+          }
+          if (shapeFlag & 16 /* ARRAY_CHILDREN */) {
+            mountChildren(c2, el);
+          }
+        }
       }
     };
     const patch = (n1, n2, container) => {
       if (n1 === n2)
         return;
+      if (n1 && !isSameVnode(n1, n2)) {
+        console.log("\u65B0\u65E7\u8282\u70B9\u6CA1\u6709\u5173\u7CFB\uFF0C\u76F4\u63A5\u5E72\u6389\u65E7\u7684\u8282\u70B9");
+        unmount(n1);
+        n1 = null;
+      }
       let { type, shapeFlag } = n2;
       switch (type) {
         case Text:
-          processText(null, n2, container);
+          processText(n1, n2, container);
           break;
         default:
           if (shapeFlag & 1 /* ELEMENT */) {
@@ -139,7 +278,7 @@ var VueRuntimeDOM = (() => {
       hostRemove(vnode.el);
     };
     const render2 = (vnode, container) => {
-      console.log("vnode", vnode);
+      console.log("render vnode", vnode);
       if (vnode === null) {
         if (container.__vnode) {
           unmount(container.__vnode);
@@ -209,78 +348,6 @@ var VueRuntimeDOM = (() => {
       return document.createTextNode(text);
     }
   };
-
-  // packages/runtime-dom/src/modules/attr.ts
-  function patchAttr(el, key, value) {
-    if (value) {
-      el.setAttribute(key, value);
-    } else {
-      el.removeAttribute(key);
-    }
-  }
-
-  // packages/runtime-dom/src/modules/class.ts
-  function patchClass(el, name) {
-    if (name === null) {
-      el.removeAttribute("class");
-    } else {
-      el.className = name;
-    }
-  }
-
-  // packages/runtime-dom/src/modules/event.ts
-  function createInvoker(callback) {
-    const invoker = (e) => invoker.value();
-    invoker.value = callback;
-    return invoker;
-  }
-  function patchEvent(el, eventName, nextValue) {
-    let invokers = el._vei || (el._vei = {});
-    let exits = invokers[eventName];
-    let event = eventName.slice(2).toLowerCase();
-    if (exits) {
-      if (nextValue) {
-        exits.value = nextValue;
-      } else {
-        el.removeEventListener(event, exits);
-        invokers[eventName] = void 0;
-      }
-    } else {
-      if (nextValue) {
-        const invoker = invokers[eventName] = createInvoker(nextValue);
-        el.addEventListener(event, invoker);
-      }
-    }
-  }
-
-  // packages/runtime-dom/src/modules/style.ts
-  function patchStyle(el, prevValue, nextValue) {
-    if (nextValue) {
-      for (let key in nextValue) {
-        el.style[key] = nextValue[key];
-      }
-    }
-    if (prevValue) {
-      for (let key in prevValue) {
-        if (nextValue[key] === null) {
-          el.style[key] = null;
-        }
-      }
-    }
-  }
-
-  // packages/runtime-dom/src/patchProp.ts
-  function patchProp(el, key, prevValue, nextValue) {
-    if (key === "class") {
-      patchClass(el, nextValue);
-    } else if (key === "style") {
-      patchStyle(el, prevValue, nextValue);
-    } else if (/^on[^a-z]/.test) {
-      patchEvent(el, key, nextValue);
-    } else {
-      patchAttr(el, key, nextValue);
-    }
-  }
 
   // packages/runtime-dom/src/index.ts
   var renderOptions = Object.assign(nodeOps, { patchProp });

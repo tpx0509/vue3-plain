@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-    <div id="app">app</div>
+    <div id="app"></div>
     <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
     <script src="./dist/runtime-dom.global.js"></script>
     <script>
@@ -42,12 +42,24 @@
         // })
         // render(h('h1',{ style : { color : 'red' },onClick: () => alert(1) },
         // h('span','hello'),'world'),app)
-        render(h('h1',['123123','123123']),app)
+       
+        // setTimeout(() => {
+        //     render(h('p',{ style: { color : 'blue'} },'333333'),app)
+        // },1000)
+
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },
+        // [h('span','123'),'123']),app)
         // setTimeout(() => {
         //     // 卸载
-        //     render(null,app)
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },'123'),app)
         // },1000)
-        render(h('h1',['333333','333333']),app)
+
+        render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },['212','23']),app)
+        setTimeout(() => {
+            // 卸载
+            render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },''),app)
+        },1000)
+        
     </script>
 </body>
 </html>

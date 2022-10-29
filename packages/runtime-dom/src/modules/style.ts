@@ -6,7 +6,7 @@ export function patchStyle(el,prevValue,nextValue) {
     }
     if(prevValue) { // 把旧的style（新的里面没有的）全干掉
         for(let key in prevValue) {
-            if(nextValue[key] === null) {
+            if(nextValue[key] == null) { // 可能为null或undefined
                 el.style[key] = null
             }
              
