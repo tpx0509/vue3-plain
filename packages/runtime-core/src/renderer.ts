@@ -1,5 +1,6 @@
 import { isString, ShapeFlags } from "@vue/shared";
 import { patchProp } from "packages/runtime-dom/src/patchProp";
+import { getSequence } from "./sequence";
 import { createVnode, isSameVnode, Text } from "./vnode";
 // 创建渲染器
 export function createRenderer(renderOptions) {
@@ -25,32 +26,32 @@ export function createRenderer(renderOptions) {
     } else {
       // 之前文本现在也是文本。 更新流程
       // 节点复用
-      const el = n2.el = n1.el
-      if(n1.children !== n2.children) {
-        hostSetText(el,n2.children) // 文本的更新
+      const el = (n2.el = n1.el);
+      if (n1.children !== n2.children) {
+        hostSetText(el, n2.children); // 文本的更新
       }
     }
   };
-  const normalize = (child,i) => {
-    let children = child[i]
+  const normalize = (child, i) => {
+    let children = child[i];
     if (isString(children)) {
       children = child[i] = createVnode(Text, null, children);
     }
-    return children
+    return children;
   };
   const mountChildren = (children, container) => {
     for (let i = 0; i < children.length; i++) {
-      let child = normalize(children,i);
+      let child = normalize(children, i);
       patch(null, child, container);
     }
   };
   const unmountChildren = (children) => {
-    for(let i = 0; i < children.length; i++) {
-       unmount(children[i])
+    for (let i = 0; i < children.length; i++) {
+      unmount(children[i]);
     }
-  }
+  };
 
-  const mountElement = (vnode, container,anchor) => {
+  const mountElement = (vnode, container, anchor) => {
     let { type, props, children, shapeFlag } = vnode;
     let el = (vnode.el = hostCreateElement(type)); // 将真实元素挂在到这个虚拟节点上，后续用于复用节点和更新
 
@@ -67,157 +68,220 @@ export function createRenderer(renderOptions) {
       // 数组
       mountChildren(children, el);
     }
-    hostInsert(el, container,anchor);
+    hostInsert(el, container, anchor);
   };
 
-  const processElement = (n1, n2, container,anchor) => {
+  const processElement = (n1, n2, container, anchor) => {
     if (n1 === null) {
       // 初次渲染，直接挂载即可
-      mountElement(n2, container,anchor);
+      mountElement(n2, container, anchor);
     } else {
-      patchElement(n1,n2)
-      
+      patchElement(n1, n2);
     }
   };
-  const patchProps = (oldProps,newProps,el) =>  {
-      
-      // 把新的属性全部都添加上
-      for(let key in newProps) {
-        patchProp(el,key,oldProps[key],newProps[key])
+  const patchProps = (oldProps, newProps, el) => {
+    // 把新的属性全部都添加上
+    for (let key in newProps) {
+      patchProp(el, key, oldProps[key], newProps[key]);
+    }
+    // 旧的属性，新的里面没有的，删除掉
+    for (let key in oldProps) {
+      if (newProps[key] == null) {
+        patchProp(el, key, oldProps[key], null);
       }
-      // 旧的属性，新的里面没有的，删除掉
-      for(let key in oldProps) {
-         if(newProps[key] == null) {
-           patchProp(el,key,oldProps[key],null)
-         }
-      }
-  }
-  const patchElement = (n1,n2) => {
-      // 之前元素，现在也是元素 更新流程
-      // 节点复用
-      const el = n2.el = n1.el
+    }
+  };
+  const patchElement = (n1, n2) => {
+    // 之前元素，现在也是元素 更新流程
+    // 节点复用
+    const el = (n2.el = n1.el);
 
-      let oldProps = n1.props || {}
-      let newProps = n2.props || {}
-      // 对比属性
-      patchProps(oldProps,newProps,el)
-      // 对比儿子
-      patchChildren(n1, n2, el);
-  }
-  const patchChildren = (n1,n2,el) => {
-     let c1 = n1.children
-     let c2 = n2.children
-     let prevShapeFlag = n1.shapeFlag
-     let shapeFlag = n2.shapeFlag
-     // 新老元素无非都是有三种情况 数组/文本/空
-    if(shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+    let oldProps = n1.props || {};
+    let newProps = n2.props || {};
+    // 对比属性
+    patchProps(oldProps, newProps, el);
+    // 对比儿子
+    patchChildren(n1, n2, el);
+  };
+  const patchChildren = (n1, n2, el) => {
+    let c1 = n1.children;
+    let c2 = n2.children;
+    let prevShapeFlag = n1.shapeFlag;
+    let shapeFlag = n2.shapeFlag;
+    // 新老元素无非都是有三种情况 数组/文本/空
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       // 新元素是文本
-       if(prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-         unmountChildren(c1) // 新的是文本，老的是数组， 先卸载掉老的
-       }
-       if(c1 !== c2) { // 更新文本即可， 
-         hostSetElementText(el,c2)
-       }
-    }else {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        unmountChildren(c1); // 新的是文本，老的是数组， 先卸载掉老的
+      }
+      if (c1 !== c2) {
+        // 更新文本即可，
+        hostSetElementText(el, c2);
+      }
+    } else {
       // 新元素为数组或者空
-      if(prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
         // 老的是数组
-        if(shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-           // diff 数组 数组
-           console.log('diff')
-           patchKeyedChildren(c1,c2,el)
-        }else {
-           // 新的为空，
-           unmountChildren(c1)
+        if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          // diff 数组 数组
+          console.log("diff");
+          patchKeyedChildren(c1, c2, el);
+        } else {
+          // 新的为空，
+          unmountChildren(c1);
         }
-      }else {
+      } else {
         // 老的为文本或空
-        console.log('老的为文本或空')
-        if(prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
-           // 老的为文本，清空文本，再进行挂载 (老的为空就不用管了)
-           hostSetElementText(el,'')
+        console.log("老的为文本或空");
+        if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+          // 老的为文本，清空文本，再进行挂载 (老的为空就不用管了)
+          hostSetElementText(el, "");
         }
-        if(shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-          mountChildren(c2,el) // 新的是数组,进行挂载 （else的话就是新的是空 什么也不做）
+        if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          mountChildren(c2, el); // 新的是数组,进行挂载 （else的话就是新的是空 什么也不做）
         }
-        
       }
     }
-  }
+  };
 
-  const patchKeyedChildren = (c1,c2,el) => { // 比较两个儿子的差异
-      let i=0;
-      let e1 = c1.length-1;
-      let e2 = c2.length-1;
-      // sync from start
-      while(i <= e1 && i<= e2) { // 新老元素有任何一方遍历完就停止
-        const n1 = c1[i]
-        const n2 = c2[i]
-         if(isSameVnode(n1,n2)) {
-            patch(n1,n2,el) // 比较两个节点的属性和子节点
-         }else {
-          break;
-         }
-         i++
+  const patchKeyedChildren = (c1, c2, el) => {
+    // 比较两个儿子的差异
+    let i = 0;
+    let e1 = c1.length - 1;
+    let e2 = c2.length - 1;
+    // sync from start
+    while (i <= e1 && i <= e2) {
+      // 新老元素有任何一方遍历完就停止
+      const n1 = c1[i];
+      const n2 = c2[i];
+      if (isSameVnode(n1, n2)) {
+        patch(n1, n2, el); // 比较两个节点的属性和子节点
+      } else {
+        break;
       }
-      console.log(i,e1,e2) // 尽可能减少比较的内容
-      // sync from end
-      while(i<=e1 && i<= e2) {
-        const n1 = c1[e1]
-        const n2 = c2[e2]
-         if(isSameVnode(n1,n2)) {
-            patch(n1,n2,el) // 比较两个节点的属性和子节点
-         }else {
-          break;
-         }
-         e1--;
-         e2--;
+      i++;
+    }
+    console.log(i, e1, e2); // 尽可能减少比较的内容
+    // sync from end
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[e1];
+      const n2 = c2[e2];
+      if (isSameVnode(n1, n2)) {
+        patch(n1, n2, el); // 比较两个节点的属性和子节点
+      } else {
+        break;
       }
-      console.log(i,e1,e2) // 尽可能减少比较的内容
-      // common sequence + mount 同序列挂载
+      e1--;
+      e2--;
+    }
+    console.log(i, e1, e2); // 尽可能减少比较的内容
+    // common sequence + mount 同序列挂载
 
-       
-      // i要比e1大说明有新增的
-      // i和e2之间的是新增的部分
-      
-      if(i > e1) {
-         if(i <= e2) {
-            while(i <= e2) { // 要添加的元素就是i到e2之间
-              // 具体添加的位置是往后面添加还是往前面添加，要看i的后面还有没有元素(是否有参照物)
-              let nextPos = i + 1
-              let anchor = nextPos < c2.length ? c2[nextPos].el : null;
-              patch(null,c2[i],el,anchor) // 创造新节点，扔到容器中
-              i++
-            }
-         }
+    // i要比e1大说明有新增的
+    // i和e2之间的是新增的部分
+
+    if (i > e1) {
+      if (i <= e2) {
+        while (i <= e2) {
+          // 要添加的元素就是i到e2之间
+          // 具体添加的位置是往后面添加还是往前面添加，要看i的后面还有没有元素(是否有参照物)
+          let nextPos = i + 1;
+          let anchor = nextPos < c2.length ? c2[nextPos].el : null;
+          patch(null, c2[i], el, anchor); // 创造新节点，扔到容器中
+          i++;
+        }
       }
-      // common sequence + unmount 同序列卸载
-      // i比e2大说明有要删除的的
-      // i和e1之间的是删除的部分
-      else if(i > e2) {
-        if(i <= e1) {
-          while(i <= e1) {
-             unmount(c1[i])
-             i++
-          }
+    }
+    // common sequence + unmount 同序列卸载
+    // i比e2大说明有要删除的的
+    // i和e1之间的是删除的部分
+    else if (i > e2) {
+      if (i <= e1) {
+        while (i <= e1) {
+          unmount(c1[i]);
+          i++;
+        }
+      }
+    }
+
+    /* 开始乱序比对 */
+
+    console.log('开始乱序比对',i,e1,e2)
+    let s1 = i;
+    let s2 = i;
+    let keyToNewIndexMap = new Map() // 记录新元素索引的map
+    let toBePatchedLen = e2 - s2 + 1; // 新的乱序节点的长度
+    let oIndexToNIndexArr = new Array(toBePatchedLen).fill(0) // 标记新元素对应的老的元素索引位置。如果是0，代表没有对比过，也就是老元素中没有。
+    // 遍历新的乱序的节点,记录索引位置
+    for(let i=s2; i < toBePatchedLen+s2; i++) {
+        let indexI = c2[i]
+        keyToNewIndexMap.set(indexI.key,i)
+    }
+    
+    // 开始遍历老的乱序的节点，然后去新的索引map中去找，
+    // 如果找到了，对比两个节点的属性和儿子差异（patch）
+    // 如果老的存在，新的不存在，则需要卸载掉
+    for(let i=s1; i <= e1; i++) {
+       console.log(c1[i])
+       let oldChild = c1[i]
+       let newIndex = keyToNewIndexMap.get(oldChild.key)
+       if(newIndex === undefined) {
+          unmount(oldChild)
+       }else {
+          // 如果找到了就记录一下位置
+          oIndexToNIndexArr[newIndex-s2] = i+1 // 加1是避免i正好是0的情况， 一会要根据这个值来进行判断，如果是0的话认为新元素是要创建的的
+          patch(oldChild,c2[newIndex],el)
        }
+    } // 到这里只是做了新老属性和儿子的对比，差一步移动位置
+    console.log('keyToNewIndexMap',keyToNewIndexMap)
+    console.log('toBePatchedLen',toBePatchedLen)
+    console.log('oIndexToNIndexArr',oIndexToNIndexArr)
+
+    // 优化 最长递增子序列  减少插入次数
+    let increment = getSequence(oIndexToNIndexArr)
+    let j = increment.length - 1 
+    console.log('递增序列',increment)
+
+    // 开始移动位置
+    // 循环需要创建/移动的元素，挨个倒序插入
+    for(let i = toBePatchedLen-1; i >= 0; i-- ) {
+        let newIndex = i+s2
+        let anchor = newIndex+1 < c2.length ? c2[newIndex+1].el : null
+        if(oIndexToNIndexArr[i] === 0) {
+           // 创建元素
+           patch(null,c2[newIndex],el,anchor)
+           
+        }else {
+           // 移动位置
+           if(i !== increment[j]) {  // 这里应该也是一个优化，我一开始想到的是用increment.includes(i)来判断
+             // 这样无疑每次都需要循环一遍，新加一个j的变量，因为是倒序插入的，j的取值也是倒序取得，所以i和increment[j]如果相等是一定能够找到的，
+             // 这样相等的时候就可以跳过移动，跳过移动时将j--。继续去找下一个， 避免了每次判断时都循环increment这个数组
+             console.log('移动位置',c2[newIndex].el)
+             hostInsert(c2[newIndex].el,el,anchor)
+           }else {
+             // 不需要移动了
+             j--
+           }
+            
+          
+           
+        }
     }
 
-     
-      
-      
+    
 
-      
-  }
-  const patch = (n1, n2, container,anchor=null) => {
+
+
+  };
+  const patch = (n1, n2, container, anchor = null) => {
     if (n1 === n2) return;
 
-    if(n1 && !isSameVnode(n1,n2)) {
-        console.log('新旧节点没有关系，直接干掉旧的节点')
-        // 如果不是相同的vnode，直接把旧的节点卸载掉
-        unmount(n1)
-        // 将n1置为null，后续就会走新的挂载流程
-        n1 = null
+    if (n1 && !isSameVnode(n1, n2)) {
+      console.log("新旧节点没有关系，直接干掉旧的节点");
+      // 如果不是相同的vnode，直接把旧的节点卸载掉
+      unmount(n1);
+      // 将n1置为null，后续就会走新的挂载流程
+      n1 = null;
     }
     let { type, shapeFlag } = n2;
     switch (type) {
@@ -226,7 +290,7 @@ export function createRenderer(renderOptions) {
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
-          processElement(n1, n2, container,anchor);
+          processElement(n1, n2, container, anchor);
         }
       // 后续还有组件的渲染...
     }
@@ -237,7 +301,7 @@ export function createRenderer(renderOptions) {
   const render = (vnode, container) => {
     // 渲染过程是用你传入的renderOptions来渲染
     // 如果当前vnode是null，代表是要卸载掉,需要将dom节点删掉
-    console.log('render vnode',vnode)
+    console.log("render vnode", vnode);
     if (vnode === null) {
       // 卸载逻辑
       if (container.__vnode) {

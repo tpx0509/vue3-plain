@@ -67,22 +67,75 @@
         // ]),app)
         // },1000)
 
-        render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
-            h('p',{ key : 'd'},'d'),
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
+        //     h('p',{ key : 'd'},'d'),
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c'),
+            
+        // ]),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c')
+        // ]),app)
+        // },1000)
+         
+        // 乱序比对
+        // render(h('h1',[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ key : 'c'},'c'),
+        //     h('p',{ key : 'd'},'d'),
+        //     h('p',{ style:{ color : 'yellow' },key : 'e'},'e'),
+        //     h('p',{ key : 'gg'},'gg'),
+        //     h('p',{ key : 'f'},'f'),
+        //     h('p',{ key : 'g'},'g')
+        // ]),app)
+        // setTimeout(() => {
+        //     render(h('h1',[
+        //     h('p',{ key : 'a'},'a'),
+        //     h('p',{ key : 'b'},'b'),
+        //     h('p',{ style:{ color : 'red' },key : 'e'},'e'),
+        //     h('p',{ key : 'c'},'c'),
+        //     h('p',{ key : 'd'},'d'),
+        //     h('p',{ key : 'h'},'h'),
+        //     h('p',{ key : 'f'},'f'),
+        //     h('p',{ key : 'g'},'g')
+        // ]),app)
+        // },1000)
+
+        render(h('h1',[
             h('p',{ key : 'a'},'a'),
             h('p',{ key : 'b'},'b'),
             h('p',{ key : 'c'},'c'),
-            
+            h('p',{ key : 'd'},'d'),
+            h('p',{ style:{ color : 'yellow' },key : 'e'},'e'),
+            h('p',{ key : 'gg'},'gg'),
+            h('p',{ key : 'x'},'x'),
+            h('p',{ key : 'w'},'w'),
+            h('p',{ key : 'y'},'y'),
+            h('p',{ key : 'f'},'f'),
+            h('p',{ key : 'g'},'g')
         ]),app)
         setTimeout(() => {
-            render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },[
+            render(h('h1',[
             h('p',{ key : 'a'},'a'),
             h('p',{ key : 'b'},'b'),
-            h('p',{ key : 'c'},'c')
+            h('p',{ style:{ color : 'red' },key : 'e'},'e'),
+            h('p',{ key : 'c'},'c'),
+            h('p',{ key : 'd'},'d'),
+            h('p',{ key : 'h'},'h'),
+            h('p',{ key : 'x'},'x'),
+            h('p',{ key : 'w'},'w'),
+            h('p',{ key : 'y'},'y'),
+            h('p',{ key : 'z'},'z'),
+            h('p',{ key : 'f'},'f'),
+            h('p',{ key : 'g'},'g')
         ]),app)
         },1000)
 
-        // 未通过
         // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[
         //     h('p',{ key : 'a'},'a'),
         //     h('p',{ key : 'b'},'b'),
@@ -97,7 +150,6 @@
         // ]),app)
         // },1000)
 
-        // 未通过
         // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },[ 
         //     h('p',{ key : 'a'},'a'),
         //     h('p',{ key : 'b'},'b'),

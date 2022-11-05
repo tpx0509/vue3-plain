@@ -112,6 +112,48 @@ var VueRuntimeDOM = (() => {
     }
   }
 
+  // packages/runtime-core/src/sequence.ts
+  var start;
+  var end;
+  var middle;
+  function getSequence(arr) {
+    let result = [0];
+    let p = arr.slice(0);
+    for (let i2 = 0; i2 < arr.length; i2++) {
+      let arrI = arr[i2];
+      if (arrI !== 0) {
+        let resultLastLength = result[result.length - 1];
+        if (arrI > arr[resultLastLength]) {
+          result.push(i2);
+          p[i2] = result[result.length - 2];
+          continue;
+        } else {
+          start = 0;
+          end = result.length - 1;
+          while (start < end) {
+            middle = (start + end) / 2 | 0;
+            if (arr[result[middle]] < arrI) {
+              start = middle + 1;
+            } else {
+              end = middle;
+            }
+          }
+          if (arr[result[end]] > arrI) {
+            result[end] = i2;
+            p[i2] = result[end - 1];
+          }
+        }
+      }
+    }
+    let i = result.length;
+    let last = result[i - 1];
+    while (i-- > 0) {
+      result[i] = last;
+      last = p[last];
+    }
+    return result;
+  }
+
   // packages/runtime-core/src/vnode.ts
   var Text = Symbol("Text");
   function isVnode(value) {
@@ -297,6 +339,47 @@ var VueRuntimeDOM = (() => {
           while (i <= e1) {
             unmount(c1[i]);
             i++;
+          }
+        }
+      }
+      console.log("\u5F00\u59CB\u4E71\u5E8F\u6BD4\u5BF9", i, e1, e2);
+      let s1 = i;
+      let s2 = i;
+      let keyToNewIndexMap = /* @__PURE__ */ new Map();
+      let toBePatchedLen = e2 - s2 + 1;
+      let oIndexToNIndexArr = new Array(toBePatchedLen).fill(0);
+      for (let i2 = s2; i2 < toBePatchedLen + s2; i2++) {
+        let indexI = c2[i2];
+        keyToNewIndexMap.set(indexI.key, i2);
+      }
+      for (let i2 = s1; i2 <= e1; i2++) {
+        console.log(c1[i2]);
+        let oldChild = c1[i2];
+        let newIndex = keyToNewIndexMap.get(oldChild.key);
+        if (newIndex === void 0) {
+          unmount(oldChild);
+        } else {
+          oIndexToNIndexArr[newIndex - s2] = i2 + 1;
+          patch(oldChild, c2[newIndex], el);
+        }
+      }
+      console.log("keyToNewIndexMap", keyToNewIndexMap);
+      console.log("toBePatchedLen", toBePatchedLen);
+      console.log("oIndexToNIndexArr", oIndexToNIndexArr);
+      let increment = getSequence(oIndexToNIndexArr);
+      let j = increment.length - 1;
+      console.log("\u9012\u589E\u5E8F\u5217", increment);
+      for (let i2 = toBePatchedLen - 1; i2 >= 0; i2--) {
+        let newIndex = i2 + s2;
+        let anchor = newIndex + 1 < c2.length ? c2[newIndex + 1].el : null;
+        if (oIndexToNIndexArr[i2] === 0) {
+          patch(null, c2[newIndex], el, anchor);
+        } else {
+          if (i2 !== increment[j]) {
+            console.log("\u79FB\u52A8\u4F4D\u7F6E", c2[newIndex].el);
+            hostInsert(c2[newIndex].el, el, anchor);
+          } else {
+            j--;
           }
         }
       }
