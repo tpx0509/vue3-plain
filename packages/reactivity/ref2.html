@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+    </div>
+    <div id="other"></div>
+    <!-- <script src="./dist/reactivity.global.js"></script> -->
+    <!-- <script src="../../node_modules/vue/dist/vue.global.js"></script> -->
+    <script>
+        let { watch, effect,reactive,toRefs } = VueReactivity;
+        // let { ref,toRefs,effect,reactive } = Vue;
+
+        let state = reactive({
+             name : 'aa',
+             address : {
+                 name : '海淀'
+             }
+        })
+        let { name ,address } = toRefs(state)
+        effect(() => {
+            app.innerHTML = name.value
+            other.innerHTML = address.value.name
+        })
+        console.log('name =>>>>>>>',name)
+        setTimeout(() => {
+            name.value = 111
+            state.address.name = '改变了'
+        },1000)
+
+
+    </script>
+</body>
+</html>

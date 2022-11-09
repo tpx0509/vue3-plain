@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .aaa {
+             font-size : 90px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer,h,render,Text } = VueRuntimeDOM
+
+        console.log(VueRuntimeDOM)
+
+        // console.log(createRenderer)
+        // 可以自己创建渲染器
+        // let renderer = createRenderer({
+        //      insert:(el,container) => {
+        //          return container.appendChild(el)
+        //      },
+        //      createElement : (element) => {
+        //         return document.createElement(element)
+        //      },
+        //      setElementText : (el,content) => {
+        //          el.innerHTML = content
+        //      },
+        //      patchProp (el,key,prevValue,newValue) {
+        //          console.log(el,key,prevValue,newValue)
+        //          for(let i in newValue) {
+        //              el[key][i] = newValue[i]
+        //          }
+        //      }
+        // })
+        // render(h('h1',{ style : { color : 'red' },onClick: () => alert(1) },
+        // h('span','hello'),'world'),app)
+       
+        // setTimeout(() => {
+        //     render(h('p',{ style: { color : 'blue'} },'333333'),app)
+        // },1000)
+
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },
+        // [h('span','123'),'123']),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },'123'),app)
+        // },1000)
+
+        // render(h('h1',{ style : { color : 'red',fontSize:'18px',background:'yellow' },onclick:() => alert(1) },['212','23']),app)
+        // setTimeout(() => {
+        //     render(h('h1',{ style : { color : 'blue' },onclick:() => alert(12) },''),app)
+        // },1000)
+        
+    </script>
+</body>
+</html>

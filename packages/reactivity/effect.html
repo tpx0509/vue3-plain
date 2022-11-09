@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+
+        <div id="div1">div1</div>
+        <div id="div2">div2</div>
+        <div id="div3">div3</div>
+        <div id="div4">div4</div>
+    </div>
+    <div id="other"></div>
+    <script src="./dist/reactivity.global.js"></script>
+    <!-- <script src="../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script> -->
+    <script>
+        let { effect, reactive } = VueReactivity
+        // 简单测试
+        // let state = reactive({
+        //      age : 25
+        // })
+
+        // effect(() => {
+        //     div4.innerHTML = state.age
+        // })
+
+        // setInterval(() => {
+        //     state.age++
+        // },1000)
+
+
+        // 分支切换
+            // let state = reactive({
+            //     flag : true,
+            //     loadingText : '记载中',
+            //     name : 'tianpeixin',
+            //     other : '其他'
+            // })
+            // effect(() => {
+            //     console.log('render')
+            //     app.innerHTML = state.flag ? state.loadingText : state.name
+            // })
+            // effect(() => {
+            //     other.innerHTML = state.loadingText
+            // })
+
+            // setTimeout(() => {
+            //     state.flag = false
+            // },500)
+            // setTimeout(() => {
+            //     state.name = 'tpx'
+            // },1000)
+            // setTimeout(() => {
+            //     // flag已经为false了，loadingText变了，不应该触发effect
+            //     console.log('按理不应该触发')
+            //     state.loadingText = '加载中'
+            // },2000)
+
+        // 调度器
+        // const state1 = reactive({
+        //      age : 26
+        // })
+
+        // const run = effect(() => {
+        //     console.log('run')
+        //     other.innerHTML = state1.age
+        // })
+        // run.effect.stop()
+        // state1.age++
+        // state1.age++
+        // state1.age++
+        // state1.age++
+        // state1.age++
+        // run()
+        // let wating = false
+        // const run = effect(() => {
+        //     console.log('run')
+        //     other.innerHTML = state1.age
+        // },{
+        //     scheduler() { // 调度器，如何更新自己决定
+        //         if(!wating) {
+        //             wating = true
+        //              setTimeout(() =>{
+        //                 console.log('异步渲染')
+        //                 run()
+        //                 wating = false
+        //              },0)
+        //         }
+        //     }
+        // })
+        // state1.age++
+        // state1.age++
+        // state1.age++
+        // state1.age++
+        // state1.age++
+
+        // effect内赋值
+        // let state = reactive({
+        //     flag : true,
+        //     loadingText : '记载中',
+        //     name : 'tianpeixin',
+        //     age : 26
+        // })
+        // effect(() => {
+        //     console.log('render')
+        //     state.age = Math.random()
+        //     app.innerHTML = `${state.name}${state.age}`
+        // })
+        // setTimeout(() => {
+        //     state.age++
+        //     state.age++
+        //     state.age++
+        // },1000)
+
+        // 嵌套effect
+        // let state = reactive({
+        //      name : 'tianpeixin',
+        //      age : 26,
+        //      name2 : 'div2',
+        //      name3 : 'div3',
+        //      name4 : 'div4',
+        // })
+        // let val = 1
+        // effect(() => {
+        //     // 异步是不能收集的
+        //     // setTimeout(() => {
+        //         div1.innerHTML = `${state.name}${state.age}` 
+        //         document.title = state.age
+        //     // },0)
+        //     console.log('执行1')
+        //     effect(() => {
+        //         div2.innerHTML = state.name2
+        //         console.log('执行2')
+        //     })
+        //     effect(() => {
+        //         div3.innerHTML = `${state.name3},${++val}`
+        //         console.log('执行3')
+        //     })
+        //     div4.innerHTML = state.name4
+        // })
+        
+        // setTimeout(() => {
+        //     state.age = 88
+        // },1000)
+        // setTimeout(() => {
+        //     state.name = 'tpx'
+        // },1000)
+
+
+        // setTimeout(() => {
+        //     state.name2 = 'div2变了'
+        // },2000)
+        // setTimeout(() => {
+        //     state.name3 = 'name3变了'
+        // },3000)
+        // setTimeout(() => {
+        //     state.name4 = 'name4变了'
+        //     state.name3 = 'name3变了2333333'
+        // },4000)
+    </script>
+</body>
+</html>
