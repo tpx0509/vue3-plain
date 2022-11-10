@@ -1,7 +1,9 @@
 import { isString, ShapeFlags } from "@vue/shared";
 import { patchProp } from "packages/runtime-dom/src/patchProp";
-import { getSequence } from "./sequence";
+import { getSequenceIndex } from "./sequence";
 import { createVnode, isSameVnode, Text } from "./vnode";
+
+
 // 创建渲染器
 export function createRenderer(renderOptions) {
   const {
@@ -238,7 +240,7 @@ export function createRenderer(renderOptions) {
     console.log('oIndexToNIndexArr',oIndexToNIndexArr)
 
     // 优化 最长递增子序列  减少插入次数
-    let increment = getSequence(oIndexToNIndexArr)
+    let increment = getSequenceIndex(oIndexToNIndexArr)
     let j = increment.length - 1 
     console.log('递增序列',increment)
 

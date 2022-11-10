@@ -1,8 +1,10 @@
+import { isArray } from "@vue/shared";
+
 // 获取最长递增子序列的索引 （ vue需要的是索引 ）
 let start: number;
 let end: number;
 let middle: number;
-export function getSequence(arr) {
+export function getSequenceIndex(arr) {
   // 贪心算法 + 二分查找 + 前置节点追溯
   let result = [0]; // 默认放入索引0
   let p = arr.slice(0); // 标记索引，不用关心里面放的啥，长度要跟arr的长度相同
@@ -51,3 +53,33 @@ export function getSequence(arr) {
 
   return result;
 }
+
+
+
+export function getSequence(arr) {
+    if(!arr || !isArray(arr)) return arr
+    let result = [arr[0]]
+    let p = arr.slice(0)
+    for(let i=0; i<arr.length; i++) {
+       let arrI = arr[i]
+       if(arrI > result[result.length-1]) {
+          result.push(arrI)
+       }else if(arrI < result[result.length-1]) {
+           start = 0;
+           end = result.length-1;
+           while(start < end) {
+              middle = (start+end) / 2 | 0
+              if(result[middle] < arrI) {
+                 start = middle + 1
+              }else {
+                 end = middle
+              }
+           }
+           result[end] = arrI
+       }
+    }
+    return result
+}
+
+console.log('getSequence([5,3,4,2,7,11,16,9,15,19,2])',
+getSequence([5,3,4,2,7,11,16,9,15,19,2]))
