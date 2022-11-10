@@ -55,31 +55,51 @@ export function getSequenceIndex(arr) {
 }
 
 
-
 export function getSequence(arr) {
     if(!arr || !isArray(arr)) return arr
     let result = [arr[0]]
+    // let map  = new Map()    // map的方式
     let p = arr.slice(0)
     for(let i=0; i<arr.length; i++) {
        let arrI = arr[i]
        if(arrI > result[result.length-1]) {
           result.push(arrI)
-       }else if(arrI < result[result.length-1]) {
+          // map.set(arr[i],result[result.length-2])
+          p[i] = result[result.length-2]
+       }else{
            start = 0;
            end = result.length-1;
            while(start < end) {
-              middle = (start+end) / 2 | 0
+              middle = ((start+end) / 2) | 0
               if(result[middle] < arrI) {
                  start = middle + 1
               }else {
                  end = middle
               }
            }
-           result[end] = arrI
+           if(result[end] > arrI) {
+            
+            result[end] = arrI 
+            // map.set(arr[i],result[end-1])
+            p[i] = result[end-1] || 0
+           }
+           
        }
+    }
+    console.log('arr',arr)
+    // console.log('p',p)
+
+    console.log('result',result)
+    let i = result.length
+    let last = result[i-1]
+    while(i-- > 0) {
+       result[i] = last
+       let index  = arr.lastIndexOf(result[i])
+       last = p[index]
+      // last = map.get(arr[i])
     }
     return result
 }
 
-console.log('getSequence([5,3,4,2,7,11,16,9,15,19,2])',
-getSequence([5,3,4,2,7,11,16,9,15,19,2]))
+console.log('[8,1,7,6,3,4,2,9,14,11,17,29,18,23,19,20,21,25,23,24,2,7,30,38,39,8]',
+getSequence([8,1,7,6,3,4,2,9,14,11,17,29,18,23,19,20,21,25,23,24,2,7,30,38,39,8]))
