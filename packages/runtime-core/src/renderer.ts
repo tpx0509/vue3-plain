@@ -157,11 +157,11 @@ export function createRenderer(renderOptions) {
       if (isSameVnode(n1, n2)) {
         patch(n1, n2, el); // 比较两个节点的属性和子节点
       } else {
-        break;
+        break; // 有不一样的就停止，尽可能减少比较的内容
       }
       i++;
     }
-    console.log(i, e1, e2); // 尽可能减少比较的内容
+    console.log(i, e1, e2); 
     // sync from end
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1];
@@ -169,12 +169,12 @@ export function createRenderer(renderOptions) {
       if (isSameVnode(n1, n2)) {
         patch(n1, n2, el); // 比较两个节点的属性和子节点
       } else {
-        break;
+        break;// 有不一样的就停止，尽可能减少比较的内容
       }
       e1--;
       e2--;
     }
-    console.log(i, e1, e2); // 尽可能减少比较的内容
+    console.log(i, e1, e2); 
     // common sequence + mount 同序列挂载
 
     // i要比e1大说明有新增的
@@ -229,7 +229,7 @@ export function createRenderer(renderOptions) {
           unmount(oldChild)
        }else {
           // 如果找到了就记录一下位置
-          oIndexToNIndexArr[newIndex-s2] = i+1 // 加1是避免i正好是0的情况， 一会要根据这个值来进行判断，如果是0的话认为新元素是要创建的的
+          oIndexToNIndexArr[newIndex-s2] = i+1 // 加1是避免i正好是0的情况， 一会要根据这个值来进行判断，如果是0的话认为是新元素是要创建的
           patch(oldChild,c2[newIndex],el)
        }
     } // 到这里只是做了新老属性和儿子的对比，差一步移动位置
