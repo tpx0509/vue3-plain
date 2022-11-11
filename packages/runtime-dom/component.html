@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>component</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer, h, render, Text, Fragment } = VueRuntimeDOM
+
+        const VueComponent = {
+            data() {
+                return {
+                    name: 't',
+                    num: 1
+                }
+            },
+            props: {
+                name2: 'px',
+                c : { n : '222'},
+                address: String
+            },
+            render() { // render函数需要返回虚拟节点，最终渲染的就是返回的虚拟节点
+                setTimeout(() => {
+                    this.num++
+                    this.num++
+                    this.c.n = '345555' 
+                    // 因为我们用的是reactive处理的props，应该用shallowReactive，
+                    // 用reactive包裹props，修改c.n时会更新，因为在取this.c时由于是深度响应所以取到的是proxy
+                    // 此时再去取n我们就没法控制了，reactive响应式会开始收集依赖，更新render
+                    // props应该是一个浅的响应式，这样用户修改时我们就可以拦截
+                }, 1000)
+                console.log('render,this', this)
+                this.name = 'tian'
+                this.name2 = 'peixin'
+               
+                console.log('this.$attr', this.$attrs)
+                
+                return h('p', `${this.name},${this.name2},${this.num},${this.address},${this.$attrs.a},${this.c.n}`)
+            }
+        }
+        // vue props(用户接收的) attrs(用户没有接收的)
+        render(h(VueComponent, { address: '火影', a: 1, b: 2, c : { n : 3} }), app)
+    </script>
+</body>
+
+</html>

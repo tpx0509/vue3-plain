@@ -1,3 +1,4 @@
+import { isObject } from './../../shared/src/index';
 import { isArray, isString, ShapeFlags } from "@vue/shared";
 
 export const Text = Symbol('Text')
@@ -16,7 +17,10 @@ export function createVnode(type,props,children = null) {
      // 先默认string类型 
 
      // 如果是字符串就认为是一个元素了
-     let shapeFlag = isString(type) ? ShapeFlags.ELEMENT : 0 ;
+     // 对象的话认为是一个有状态组件
+     let shapeFlag = 
+     isString(type) ? ShapeFlags.ELEMENT :
+     isObject(type) ? ShapeFlags.STATEFUL_COMPONENT : 0 ;
      const vnode = {
          type,
          props,
