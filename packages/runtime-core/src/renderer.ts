@@ -1,7 +1,7 @@
 import { isString, ShapeFlags } from "@vue/shared";
 import { patchProp } from "packages/runtime-dom/src/patchProp";
 import { getSequenceIndex } from "./sequence";
-import { createVnode, isSameVnode, Text } from "./vnode";
+import { createVnode, Fragment, isSameVnode, Text } from "./vnode";
 
 
 // 创建渲染器
@@ -34,12 +34,33 @@ export function createRenderer(renderOptions) {
       }
     }
   };
+  const processFragment = (n1,n2,container) => {
+     if(n1 === null) {
+        mountChildren(n2.children,container)
+     }else {
+        patchChildren(n1,n2,container)
+     }
+  }
+  const processElement = (n1, n2, container, anchor) => {
+    if (n1 === null) {
+      // 初次渲染，直接挂载即可
+      mountElement(n2, container, anchor);
+    } else {
+      patchElement(n1, n2);
+    }
+  };
   const normalize = (child, i) => {
     let children = child[i];
     if (isString(children)) {
       children = child[i] = createVnode(Text, null, children);
     }
     return children;
+  };
+
+  const normalizeChildren =  (children) => {
+    for (let i = 0; i < children.length; i++) {
+         normalize(children, i);
+    }
   };
   const mountChildren = (children, container) => {
     for (let i = 0; i < children.length; i++) {
@@ -73,14 +94,6 @@ export function createRenderer(renderOptions) {
     hostInsert(el, container, anchor);
   };
 
-  const processElement = (n1, n2, container, anchor) => {
-    if (n1 === null) {
-      // 初次渲染，直接挂载即可
-      mountElement(n2, container, anchor);
-    } else {
-      patchElement(n1, n2);
-    }
-  };
   const patchProps = (oldProps, newProps, el) => {
     // 把新的属性全部都添加上
     for (let key in newProps) {
@@ -127,6 +140,7 @@ export function createRenderer(renderOptions) {
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
           // diff 数组 数组
           console.log("diff");
+          normalizeChildren(c2) 
           patchKeyedChildren(c1, c2, el);
         } else {
           // 新的为空，
@@ -285,10 +299,15 @@ export function createRenderer(renderOptions) {
       // 将n1置为null，后续就会走新的挂载流程
       n1 = null;
     }
+
+    console.log('n1,n2',n1,n2)
     let { type, shapeFlag } = n2;
     switch (type) {
       case Text: // 处理文本的
         processText(n1, n2, container);
+        break;
+      case Fragment : // 处理fragment
+      processFragment(n1,n2,container);
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {

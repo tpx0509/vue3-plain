@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .aaa {
+            font-size : 90px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer,h,render,Text,Fragment } = VueRuntimeDOM
+        console.log(Fragment)
+        render(h(Fragment,['123123',h('p','123123'),'123123']),app)
+        setTimeout(() => {
+            render(h(Fragment,['111',h('p','12311123'),'111']),app)
+        },1000)
+
+        // render(h('p',['1','2','3']),app)
+        // setTimeout(() => {
+        //     render(h('p',['4','5','6']),app)
+        // },1000)
+    </script>
+</body>
+</html>
