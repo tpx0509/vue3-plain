@@ -41,7 +41,7 @@ const publicInstanceProxy = {
   set(target, key, value, receiver) {
     const { data, props } = target;
     if (props && hasOwn(props, key)) {
-      // 用户操作的属性是代理对象，这里面被屏蔽刘瑞
+      // 用户操作的属性是代理对象，这里面被屏蔽了
       // 但是我们可以通过instance.props拿到真实的props
       console.warn("attempting to mutate prop " + (key as string));
       return false;

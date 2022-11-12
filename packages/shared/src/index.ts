@@ -10,12 +10,16 @@ export const isString = (params) => {
     return typeof params === 'string'
 }
 
+export const isNumber = (params) => {
+    return typeof params === 'number'
+}
+
 export const isArray = (params) => {
-     return Array.isArray(params)
+    return Array.isArray(params)
 }
 
 const hasOwnProperty = Object.prototype.hasOwnProperty
-export const hasOwn = (value,key) => hasOwnProperty.call(value,key)
+export const hasOwn = (value, key) => hasOwnProperty.call(value, key)
 
 export const enum ShapeFlags {
     ELEMENT = 1,

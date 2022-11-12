@@ -1,10 +1,11 @@
 import { reactive, ReactiveEffect } from "@vue/reactivity";
-import { hasOwn, isString, ShapeFlags } from "@vue/shared";
+import { hasOwn, isString, ShapeFlags, isNumber } from "@vue/shared";
 import { patchProp } from "packages/runtime-dom/src/patchProp";
 import { createComponentInstance, setupComponent } from "./component";
 import { queueJob } from "./scheduler";
 import { getSequenceIndex } from "./sequence";
 import { createVnode, Fragment, isSameVnode, isVnode, Text } from "./vnode";
+import { updateProps } from "./componentProps";
 
 // 创建渲染器
 export function createRenderer(renderOptions) {
@@ -51,13 +52,24 @@ export function createRenderer(renderOptions) {
       patchElement(n1, n2);
     }
   };
+
+  const updateComponent = (n1,n2) => {
+     // instance.props是响应式的，而且可以更改，属性的更新会让页面重新渲染
+      // 对于元素而言是要复用dom节点，组件是要复用组件实例
+      const instance = (n2.component = n1.component)
+      const { props : prevProps } = n1
+      const { props : nextProps } = n2
+      updateProps(instance,prevProps,nextProps)
+      
+  }
   const processComponent = (n1, n2, container, anchor) => {
     // 统一处理组件，里面再区分是有状态组件还是函数式组件
     console.log("render component", n1, n2);
     if (n1 === null) {
       n2.instance = mountComponent(n2, container, anchor);
     } else {
-      // 组件的更新考的是props
+      // 组件的更新靠的是props
+      updateComponent(n1,n2)
     }
   };
 
@@ -75,6 +87,7 @@ export function createRenderer(renderOptions) {
   };
 
   const setupRenderEffect = (instance,container,anchor) => {
+
     const { render } = instance
     const componentUpdatedFn = () => {
       // 区分是初始化，还是要更新
@@ -87,9 +100,9 @@ export function createRenderer(renderOptions) {
         instance.isMounted = true;
       } else {
         // 组件内部更新
-        let newSubTree = render.call(instance.proxy)
-        patch(instance.subTree, newSubTree, container, anchor);
-        instance.subTree = newSubTree
+        let subTree = render.call(instance.proxy)
+        patch(instance.subTree, subTree, container, anchor);
+        instance.subTree = subTree
       }
     };
     // 组件的异步更新
@@ -101,7 +114,7 @@ export function createRenderer(renderOptions) {
 
   const normalize = (child, i) => {
     let children = child[i];
-    if (isString(children)) {
+    if (isString(children) || isNumber(children)) {
       children = child[i] = createVnode(Text, null, children);
     }
     return children;
@@ -333,7 +346,6 @@ export function createRenderer(renderOptions) {
   };
   const patch = (n1, n2, container, anchor = null) => {
     if (n1 === n2) return;
-
     if (n1 && !isSameVnode(n1, n2)) {
       console.log("新旧节点没有关系，直接干掉旧的节点");
       // 如果不是相同的vnode，直接把旧的节点卸载掉

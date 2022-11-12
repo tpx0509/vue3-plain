@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组件的更新</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer, h, render, Text, Fragment } = VueRuntimeDOM
+        const childComponent = {
+             props : {
+                address : String
+             },
+             render() {
+                return h(Text,this.address)
+             }
+        }
+        const VueComponent = {
+            data() {
+                return {
+                    flag : false
+                }
+            },
+            
+            render() { 
+                return h(Fragment,[
+                    h('button',{ onClick:() => this.flag = !this.flag },'切换'),
+                    h(childComponent,{ address : this.flag ? '地球':'月球' })
+                ])
+            }
+        }
+
+        
+        // vue props(用户接收的) attrs(用户没有接收的)
+        render(h(VueComponent), app)
+    </script>
+</body>
+
+</html>

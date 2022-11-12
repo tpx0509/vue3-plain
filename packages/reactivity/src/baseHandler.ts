@@ -24,7 +24,6 @@ export const mutableHandlers = {
         return result
     },
     set(target,key,value,receiver) {
-        // console.log('set',target,key)
         let oldValue = target[key]
         let result = Reflect.set(target,key,value,receiver)
         if(oldValue !== value) {
