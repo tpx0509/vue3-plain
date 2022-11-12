@@ -10,7 +10,7 @@ export const mutableHandlers = {
         if(key === ReactiveFlags.IS_REACTIVE) {
             return true
         }
-        console.log('get',target,key)
+        // console.log('get',target,key)
         // 依赖收集
         track(target,key,'get')
         // Reflect和proxy配对使用 。不能使用 target[key]
@@ -24,7 +24,7 @@ export const mutableHandlers = {
         return result
     },
     set(target,key,value,receiver) {
-        console.log('set',target,key)
+        // console.log('set',target,key)
         let oldValue = target[key]
         let result = Reflect.set(target,key,value,receiver)
         if(oldValue !== value) {

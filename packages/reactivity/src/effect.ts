@@ -4,7 +4,7 @@ export class ReactiveEffect {
     public active = true
     public parent = null
     public deps = []
-    constructor(public fn,public scheduler) {}
+    constructor(public fn,public scheduler?) {}
     run() { 
         // 执行过程中会触发getter，setter。 需要收集依赖，
         // 这里将当前effect保存为activeEffect，
@@ -54,7 +54,7 @@ export function track(target,key,type) {
         depMaps.set(key,deps = new Set([]))
      }
      trackEffect(deps)
-     console.log('依赖收集map',targetDeps)
+    //  console.log('依赖收集map',targetDeps)
 }
 
 export function trackEffect(deps,type?:string) {
