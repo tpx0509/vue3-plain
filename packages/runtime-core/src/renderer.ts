@@ -1,11 +1,11 @@
-import { reactive, ReactiveEffect } from "@vue/reactivity";
-import { hasOwn, isString, ShapeFlags, isNumber } from "@vue/shared";
+import { ReactiveEffect } from "@vue/reactivity";
+import { isString, ShapeFlags, isNumber } from "@vue/shared";
 import { patchProp } from "packages/runtime-dom/src/patchProp";
 import { createComponentInstance, setupComponent } from "./component";
 import { queueJob } from "./scheduler";
 import { getSequenceIndex } from "./sequence";
-import { createVnode, Fragment, isSameVnode, isVnode, Text } from "./vnode";
-import { updateProps } from "./componentProps";
+import { createVnode, Fragment, isSameVnode, Text } from "./vnode";
+import { updateProps, hasPropsChange } from "./componentProps";
 
 // 创建渲染器
 export function createRenderer(renderOptions) {
@@ -52,15 +52,25 @@ export function createRenderer(renderOptions) {
       patchElement(n1, n2);
     }
   };
-
+  const shouldUpdateComponent = (n1,n2) => {
+    const { props : prevProps,children:prevChildren } = n1
+    const { props : nextProps,children:nextChildren } = n2
+    if(prevProps === nextProps) return false;
+    if(prevChildren || nextChildren) { // 有插插就更新
+       return true
+    }
+    return hasPropsChange(n1,n2)
+  }
   const updateComponent = (n1,n2) => {
      // instance.props是响应式的，而且可以更改，属性的更新会让页面重新渲染
       // 对于元素而言是要复用dom节点，组件是要复用组件实例
       const instance = (n2.component = n1.component)
-      const { props : prevProps } = n1
-      const { props : nextProps } = n2
-      updateProps(instance,prevProps,nextProps)
-      
+      // 需要更新就强制调用组件的update方法
+      if(shouldUpdateComponent(n1,n2)) {
+         instance.next = n2 // 将新的虚拟节点放到next属性上（是个临时变量，更新时需要）
+         instance.update() // 统一调用update方法
+      }
+     
   }
   const processComponent = (n1, n2, container, anchor) => {
     // 统一处理组件，里面再区分是有状态组件还是函数式组件
@@ -85,7 +95,12 @@ export function createRenderer(renderOptions) {
 
     setupRenderEffect(instance,container,anchor)
   };
-
+  // 组件更新前执行的操作
+  const updateComponentPreRender = (instance,next) => {
+     instance.next = null; // next情况
+     instance.vnode = next // 实例上更新虚拟节点
+     updateProps(instance.props,next.props)  // 更新属性
+  }
   const setupRenderEffect = (instance,container,anchor) => {
 
     const { render } = instance
@@ -100,6 +115,11 @@ export function createRenderer(renderOptions) {
         instance.isMounted = true;
       } else {
         // 组件内部更新
+        let { next } = instance
+        if(next) {
+           // 更新前 需要拿到最新的属性来进行更新
+           updateComponentPreRender(instance,next)
+        }
         let subTree = render.call(instance.proxy)
         patch(instance.subTree, subTree, container, anchor);
         instance.subTree = subTree

@@ -37,16 +37,14 @@ export function hasPropsChange(prevProps = {}, nextProps = {}) {
   return false
 }
 
-export function updateProps(instance, prevProps, nextProps) {
-  if (hasPropsChange(prevProps, nextProps)) {
+export function updateProps(prevProps, nextProps) {
     for (const key in nextProps) {
       // 触发更新
-      instance.props[key] = nextProps[key]
+      prevProps[key] = nextProps[key]
     }
     for (let key in prevProps) {
       if (!hasOwn(nextProps, key)) {
-        delete instance.props[key]
+        delete prevProps[key]
       }
     }
-  }
 }
