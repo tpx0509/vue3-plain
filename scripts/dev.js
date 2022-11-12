@@ -25,7 +25,7 @@ build({
     outfile, // 输出文件
     bundle : true, // 把所有的包全部打包到一起
     format : outputFormat, // 输出的格式
-    globalName : pkg.buildOptions?.name, // 打包的全局的名字
+    globalName : pkg.buildOptions && pkg.buildOptions.name, // 打包的全局的名字
     platform : format === 'cjs' ? "node" : 'browser', // 平台
     watch : { // 监控文件变化
          onRebuild(error) {
