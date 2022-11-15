@@ -34,8 +34,10 @@ export function createVnode(type,props,children = null) {
         let type = 0;
          if(isArray(children)) {
             type = ShapeFlags.ARRAY_CHILDREN // 有孩子且是数组
+         }else if(isObject(children)) { // 有孩子且是一个对象，认为是组件的插槽
+            type = ShapeFlags.SLOTS_CHILDREN
          }else {
-            // 不是数组就认为是文本
+            // 其他的认为是文本
             children = String(children)
             type = ShapeFlags.TEXT_CHILDREN 
          }

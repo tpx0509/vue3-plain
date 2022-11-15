@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>component</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.prod.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer, h, render, Text, Fragment,ref } = VueRuntimeDOM
+
+        const VueComponent = {
+            data() {
+                return {
+                    name : 'data的name',
+                    name2 : 'name2',
+                    age   :  25
+                }   
+            },
+            props: {
+                 address : String,
+                 name : String
+            },
+            setup(props) {
+                const name = ref('setup的name')
+                const age = ref(25)
+                return {
+                    name,
+                    age
+                }
+            },
+            render() {
+                console.log('this',this.age)
+                setTimeout(() => {
+                    this.age++ // 丢失了响应式
+                },1000)
+                return h(Fragment,[this.name,this.age,this.name2,this.address])
+            }
+        }
+        render(h(VueComponent, { address : '北京',name:'props的name'}), app)
+
+        // setup返回的是一个函数，就认为是render函数
+        // const VueComponent = {
+        //     props: {
+        //         address : String
+        //     },
+        //     setup(props) {
+        //         const name = ref('tianpeixin')
+        //         const age = ref(25)
+        //         return () => {
+        //             setTimeout(() => {
+        //                  age.value++
+        //             },1000)
+        //             return h(Text,`${props.address},${name.value},${age.value}`)
+        //         }
+        //     },
+        //     render() {
+        //         return h(Text,`${this.name},${this.age}`)
+        //     }
+        // }
+        // render(h(VueComponent, { address : '北京'}), app)
+
+
+        // context
+        // const VueComponent = {
+        //     data() {
+        //         return {
+        //             name : 'data的name',
+        //             name2 : 'name2'
+        //         }   
+        //     },
+        //     props: {
+        //          address : String,
+        //          name : String
+        //     },
+        //     setup(props,{ emit }) {
+        //         const name = ref('setup的name')
+        //         const age = ref('age')
+        //         setTimeout(() => {
+        //             emit('click','emit')
+        //         },1000)
+        //         return () =>  h('p',{
+        //             onClick : () =>  emit('xxx','emit')
+        //         },`${name.value}`)
+        //     },
+        //     // render() {
+        //     //     return h('p',{
+        //     //         onClick :() =>  this.emit('click','emit')
+        //     //     },`${this.name}`)
+        //     // }
+        // }
+        // render(h(VueComponent, { onXxx : (params) => alert(params)}), app)
+    </script>
+</body>
+
+</html>
