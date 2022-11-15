@@ -79,10 +79,12 @@ export function proxyRefs(object) {
              if(isRef(oldValue)) {
                 // 老师是这样写的。不知道为什么这里不用Reflect.set
                 oldValue.value = value
-                // 我觉得可以这样
+                return true
+                // 我觉得可以这样  // 可能是receiver不能是oldValue
                 // return Reflect.set(oldValue,'value',value,oldValue)
+             }else {
+                return Reflect.set(target,key,value,receiver)
              }
-             return Reflect.set(target,key,value,receiver)
          }
      })
 }
