@@ -39,7 +39,7 @@
             render() {
                 console.log('this',this.age)
                 setTimeout(() => {
-                    this.age++ // 丢失了响应式
+                    this.age++ 
                 },1000)
                 return h(Fragment,[this.name,this.age,this.name2,this.address])
             }
