@@ -1,11 +1,12 @@
 import { ReactiveEffect } from "@vue/reactivity";
-import { isString, ShapeFlags, isNumber } from "@vue/shared";
+import { isString, ShapeFlags, isNumber, invokeArrFns } from "@vue/shared";
 import { patchProp } from "packages/runtime-dom/src/patchProp";
-import { createComponentInstance, setupComponent } from "./component";
+import { createComponentInstance, setupComponent, setCurrentInstance } from "./component";
 import { queueJob } from "./scheduler";
 import { getSequenceIndex } from "./sequence";
 import { createVnode, Fragment, isSameVnode, Text } from "./vnode";
 import { updateProps, hasPropsChange } from "./componentProps";
+import { LifecycleHooks } from './apiLifecycle';
 
 // 创建渲染器
 export function createRenderer(renderOptions) {
@@ -108,9 +109,14 @@ export function createRenderer(renderOptions) {
       // 区分是初始化，还是要更新
       if (!instance.isMounted) {
         // 初始化
-
+        // 执行onbeforeMount钩子
+        invokeArrFns(instance[LifecycleHooks.ONBEFOREMOUNT])
+        setCurrentInstance(instance)
         let subTree = render.call(instance.proxy);
+        setCurrentInstance(null)
         patch(null, subTree, container, anchor); // 创造了subTree的真实节点并且插入了
+        // 执行onMounted钩子
+        invokeArrFns(instance[LifecycleHooks.ONMOUNTED])
         instance.subTree = subTree;
         instance.isMounted = true;
       } else {
@@ -120,8 +126,14 @@ export function createRenderer(renderOptions) {
            // 更新前 需要拿到最新的属性来进行更新
            updateComponentPreRender(instance,next)
         }
+        // 执行onBeforeUpdated钩子
+        invokeArrFns(instance[LifecycleHooks.ONBEFOREUPDATE])
+        setCurrentInstance(instance)
         let subTree = render.call(instance.proxy)
+        setCurrentInstance(null)
         patch(instance.subTree, subTree, container, anchor);
+         // 执行onUpdated钩子
+        invokeArrFns(instance[LifecycleHooks.ONUPDATED])
         instance.subTree = subTree
       }
     };

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue中的生命周期</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer, h, render, Text, Fragment,
+            onBeforeMount,
+            onUpdated,
+            onBeforeUpdate,
+            onMounted, getCurrentInstance, reactive,toRefs,computed } = VueRuntimeDOM
+
+        const useCounter = () => {
+            let state = reactive({
+                name: 'tpx',
+                num: 1
+            })
+            let doubleCount = computed(() => state.num*2)
+            // 生命周期函数会自动跟当前组件关联起来
+            onBeforeMount(() => {
+                console.log('onBeforeMounted', getCurrentInstance())
+            })
+            onBeforeUpdate(() => {
+                console.log('onBeforeUpdate', getCurrentInstance())
+            })
+            onUpdated(() => {
+                console.log('onUpdated', getCurrentInstance())
+            })
+            onMounted(() => {
+                console.log('onMounted', getCurrentInstance())
+            })
+            onMounted(() => {
+                console.log('onMounted2', getCurrentInstance())
+            })
+            const add = () => {
+                state.num++
+            }
+            return {
+                state,
+                add,
+                doubleCount
+            }
+        }
+        const VueComponent = {
+            setup() { // 生命周期函数只可以在setup语法中使用
+                let { state:counter, add,doubleCount} = useCounter()
+                return {
+                    ...toRefs(counter),
+                    doubleCount,
+                    add
+                }
+            },
+            render() {
+                console.log('render', getCurrentInstance())
+                return h('button',{ onClick: this.add }, 'click',this.num,this.doubleCount)
+            }
+        }
+        render(h(VueComponent, null), app)
+    </script>
+</body>
+
+</html>

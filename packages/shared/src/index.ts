@@ -18,6 +18,10 @@ export const isArray = (params) => {
     return Array.isArray(params)
 }
 
+export const invokeArrFns = (fns) => {
+     fns && fns.forEach(fn => fn())
+}
+
 const hasOwnProperty = Object.prototype.hasOwnProperty
 export const hasOwn = (value, key) => hasOwnProperty.call(value, key)
 
