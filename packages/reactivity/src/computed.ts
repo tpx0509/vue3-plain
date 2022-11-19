@@ -12,7 +12,7 @@ class ComputedRefImpl {
         // 将用户的getter放到effect中，里面的取值会被这个effect收集起来
          this.effect = new ReactiveEffect(getter,() => {
              // 这里就是effect的调度器，稍后依赖的属性变化了会触发此函数
-             console.log('数据变化了scheduler')
+            //  console.log('数据变化了scheduler')
              if(!this._dirty) {
                 this._dirty = true
                 // 触发computed依赖的effect更新

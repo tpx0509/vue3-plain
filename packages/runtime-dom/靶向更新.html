@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue中的靶向更新(模板编译优化)</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+        let { createElementVNode: _createElementVNode,
+            toDisplayString: _toDisplayString,
+            openBlock: _openBlock,
+            Fragment: _Fragment,
+            createElementBlock: _createElementBlock, render, h, reactive, computed, toRefs } = VueRuntimeDOM
+
+        const VueComponent = {
+            setup() {
+                const state = reactive({
+                    name: 'tpx',
+                    num: 1,
+                    aa: {
+                        fontSize: '16px'
+                    },
+                    className : 'aa'
+                })
+                const doubleAge = computed(() => state.num * 2)
+                return {
+                    ...toRefs(state),
+                    doubleAge
+                }
+            },
+            render(_ctx) {
+                setTimeout(() => {
+                    _ctx.num++
+                    _ctx.name += _ctx.num
+                    _ctx.className = _ctx.className+'a'
+                }, 1000)
+                // Vue template Explorer
+                // https://template-explorer.vuejs.org/#eyJzcmMiOiI8ZGl2PlxyXG4gIDxkaXY+SGVsbG8gV29ybGQ8L2Rpdj5cclxuICA8c3BhbiA6Y2xhc3M9XCJjbGFzc05hbWVcIj57eyBuYW1lIH19PC9zcGFuPlxyXG48L2Rpdj5cclxuXHJcbiIsIm9wdGlvbnMiOnt9fQ==
+                let vnode = (_openBlock(), _createElementBlock(_Fragment, null, [
+                    _createElementVNode("div", null, [
+                        _createElementVNode("div", null, "Hello World"),
+                        _createElementVNode("span", null, _toDisplayString(_ctx.name), 1 /* TEXT */),
+                        _createElementVNode("p", null, [
+                            _createElementVNode("span", null, _toDisplayString(_ctx.num), 1 /* TEXT */),
+                            _createElementVNode("span", null, _toDisplayString(_ctx.doubleAge), 1 /* TEXT */),
+                            _createElementVNode("p", { style: { "margin-left": "10px" } }, [
+                                _createElementVNode("span", null, "又一层" + _toDisplayString(_ctx.doubleAge), 1 /* TEXT */)
+                            ])
+                        ])
+                    ]),
+                    _createElementVNode("div", null, [
+                        _createElementVNode("div", null, "Hello World"),
+                        _createElementVNode("span", null, _toDisplayString(_ctx.name), 1 /* TEXT */),
+                        _createElementVNode("p", null, [
+                            _createElementVNode("span", null, _toDisplayString(_ctx.num), 1 /* TEXT */),
+                            _createElementVNode("span", null, _toDisplayString(_ctx.doubleAge), 1 /* TEXT */),
+                            _createElementVNode("p", { style: { "margin-left": "10px" } }, [
+                                _createElementVNode("span", null, "又一层" + _toDisplayString(_ctx.doubleAge), 1 /* TEXT */)
+                            ])
+                        ])
+                    ])
+                ], 64 /* STABLE_FRAGMENT */))
+
+                // class的更新
+                // let vnode = (_openBlock(), _createElementBlock("div", null, [
+                //     _createElementVNode("div", null, "Hello World"),
+                //     _createElementVNode("span", {
+                //         class: _ctx.className,
+                //     }, _toDisplayString(_ctx.name), 3 /* TEXT, CLASS */)
+                // ]))
+                console.log(vnode)
+                return vnode
+            }
+        }
+        // vue props(用户接收的) attrs(用户没有接收的)
+        render(h(VueComponent, null), app)
+    </script>
+</body>
+
+</html>

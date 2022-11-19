@@ -59,7 +59,7 @@ export function track(target,key,type) {
 
 export function trackEffect(deps,type?:string) {
     if(type === 'computed' ) {
-        console.log('computed取值的时候收集依赖',activeEffect,deps)
+        // console.log('computed取值的时候收集依赖',activeEffect,deps)
     }
     if(activeEffect) {
         let shouldTract = !deps.has(activeEffect)

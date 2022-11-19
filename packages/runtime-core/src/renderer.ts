@@ -1,5 +1,5 @@
 import { ReactiveEffect } from "@vue/reactivity";
-import { isString, ShapeFlags, isNumber, invokeArrFns } from "@vue/shared";
+import { isString, ShapeFlags, isNumber, invokeArrFns, PatchFlags } from "@vue/shared";
 import { patchProp } from "packages/runtime-dom/src/patchProp";
 import { createComponentInstance, setupComponent, setCurrentInstance } from "./component";
 import { queueJob } from "./scheduler";
@@ -42,7 +42,13 @@ export function createRenderer(renderOptions) {
     if (n1 === null) {
       mountChildren(n2.children, container);
     } else {
-      patchChildren(n1, n2, container);
+      if(n2.dynamicChildren) { // fragment之间的优化，靶向更新
+        // 只比较动态节点
+        patchBlockChildren(n1,n2)
+      }else {
+        patchChildren(n1, n2, container);
+      }
+      
     }
   };
   const processElement = (n1, n2, container, anchor) => {
@@ -75,7 +81,6 @@ export function createRenderer(renderOptions) {
   }
   const processComponent = (n1, n2, container, anchor) => {
     // 统一处理组件，里面再区分是有状态组件还是函数式组件
-    console.log("render component", n1, n2);
     if (n1 === null) {
       n2.instance = mountComponent(n2, container, anchor);
     } else {
@@ -112,7 +117,7 @@ export function createRenderer(renderOptions) {
         // 执行onbeforeMount钩子
         invokeArrFns(instance[LifecycleHooks.ONBEFOREMOUNT])
         setCurrentInstance(instance)
-        let subTree = render.call(instance.proxy);
+        let subTree = render.call(instance.proxy,instance.proxy);
         setCurrentInstance(null)
         patch(null, subTree, container, anchor); // 创造了subTree的真实节点并且插入了
         // 执行onMounted钩子
@@ -129,7 +134,7 @@ export function createRenderer(renderOptions) {
         // 执行onBeforeUpdated钩子
         invokeArrFns(instance[LifecycleHooks.ONBEFOREUPDATE])
         setCurrentInstance(instance)
-        let subTree = render.call(instance.proxy)
+        let subTree = render.call(instance.proxy,instance.proxy)
         setCurrentInstance(null)
         patch(instance.subTree, subTree, container, anchor);
          // 执行onUpdated钩子
@@ -201,17 +206,41 @@ export function createRenderer(renderOptions) {
       }
     }
   };
+  const patchBlockChildren = (n1,n2) => {
+     for(let i=0; i< n2.dynamicChildren.length; i++) {
+        patchElement(n1.dynamicChildren[i],n2.dynamicChildren[i])
+     }
+  }
+  let time = 0
   const patchElement = (n1, n2) => {
     // 之前元素，现在也是元素 更新流程
     // 节点复用
+    console.log(time++)
     const el = (n2.el = n1.el);
 
     let oldProps = n1.props || {};
     let newProps = n2.props || {};
-    // 对比属性
-    patchProps(oldProps, newProps, el);
+
+    let { patchFlag } = n2
+    if(patchFlag & PatchFlags.CLASS) {
+       // 只更新class
+       if(oldProps.class !== newProps.class) {
+          patchProp(el,'class',null,newProps.class)
+       }
+    }else {
+      // 全量对比属性
+      patchProps(oldProps, newProps, el);
+    }
+    
     // 对比儿子
-    patchChildren(n1, n2, el);
+    if(n2.dynamicChildren) { // 元素之间的优化，靶向更新
+      // 只比较动态节点
+      patchBlockChildren(n1,n2)
+    }else {
+      // 全量diff比对
+      patchChildren(n1, n2, el);
+    }
+    
   };
   const patchChildren = (n1, n2, el) => {
     let c1 = n1.children;
@@ -234,7 +263,6 @@ export function createRenderer(renderOptions) {
         // 老的是数组
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
           // diff 数组 数组
-          console.log("diff");
           normalizeChildren(c2);
           patchKeyedChildren(c1, c2, el);
         } else {
@@ -243,7 +271,6 @@ export function createRenderer(renderOptions) {
         }
       } else {
         // 老的为文本或空
-        console.log("老的为文本或空");
         if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
           // 老的为文本，清空文本，再进行挂载 (老的为空就不用管了)
           hostSetElementText(el, "");
@@ -272,7 +299,6 @@ export function createRenderer(renderOptions) {
       }
       i++;
     }
-    console.log(i, e1, e2);
     // sync from end
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1];
@@ -285,7 +311,6 @@ export function createRenderer(renderOptions) {
       e1--;
       e2--;
     }
-    console.log(i, e1, e2);
     // common sequence + mount 同序列挂载
 
     // i要比e1大说明有新增的
@@ -317,7 +342,6 @@ export function createRenderer(renderOptions) {
 
     /* 开始乱序比对 */
 
-    console.log("开始乱序比对", i, e1, e2);
     let s1 = i;
     let s2 = i;
     let keyToNewIndexMap = new Map(); // 记录新元素索引的map
@@ -333,7 +357,6 @@ export function createRenderer(renderOptions) {
     // 如果找到了，对比两个节点的属性和儿子差异（patch）
     // 如果老的存在，新的不存在，则需要卸载掉
     for (let i = s1; i <= e1; i++) {
-      console.log(c1[i]);
       let oldChild = c1[i];
       let newIndex = keyToNewIndexMap.get(oldChild.key);
       if (newIndex === undefined) {
@@ -344,14 +367,10 @@ export function createRenderer(renderOptions) {
         patch(oldChild, c2[newIndex], el);
       }
     } // 到这里只是做了新老属性和儿子的对比，差一步移动位置
-    console.log("keyToNewIndexMap", keyToNewIndexMap);
-    console.log("toBePatchedLen", toBePatchedLen);
-    console.log("oIndexToNIndexArr", oIndexToNIndexArr);
 
     // 优化 最长递增子序列  减少插入次数
     let increment = getSequenceIndex(oIndexToNIndexArr);
     let j = increment.length - 1;
-    console.log("递增序列", increment);
 
     // 开始移动位置
     // 循环需要创建/移动的元素，挨个倒序插入
@@ -367,7 +386,6 @@ export function createRenderer(renderOptions) {
           // 这里应该也是一个优化，我一开始想到的是用increment.includes(i)来判断
           // 这样无疑每次都需要循环一遍，新加一个j的变量，因为是倒序插入的，j的取值也是倒序取得，所以i和increment[j]如果相等是一定能够找到的，
           // 这样相等的时候就可以跳过移动，跳过移动时将j--。继续去找下一个， 避免了每次判断时都循环increment这个数组
-          console.log("移动位置", c2[newIndex].el);
           hostInsert(c2[newIndex].el, el, anchor);
         } else {
           // 不需要移动了
@@ -379,7 +397,6 @@ export function createRenderer(renderOptions) {
   const patch = (n1, n2, container, anchor = null) => {
     if (n1 === n2) return;
     if (n1 && !isSameVnode(n1, n2)) {
-      console.log("新旧节点没有关系，直接干掉旧的节点");
       // 如果不是相同的vnode，直接把旧的节点卸载掉
       unmount(n1);
       // 将n1置为null，后续就会走新的挂载流程
@@ -408,7 +425,6 @@ export function createRenderer(renderOptions) {
   const render = (vnode, container) => {
     // 渲染过程是用你传入的renderOptions来渲染
     // 如果当前vnode是null，代表是要卸载掉,需要将dom节点删掉
-    console.log("render vnode", vnode);
     if (vnode === null) {
       // 卸载逻辑
       if (container.__vnode) {
