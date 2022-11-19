@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编译优化, </title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script>
+    <!-- <script src="./dist/runtime-dom.global.js"></script> -->
+    <!-- 用人家的， 看看就成。。 -->
+    <script>
+        let { createElementVNode: _createElementVNode,
+            toDisplayString: _toDisplayString,
+            openBlock: _openBlock,
+            Fragment: _Fragment,
+            renderList: _renderList,
+            createElementBlock: _createElementBlock, render, h, reactive, computed, toRefs } = VueRuntimeDOM
+
+        const VueComponent = {
+            setup() {
+                const state = reactive({
+                    flag: false,
+                    name: 'tianpeixin',
+                    fruit : ['水果','输出','c']
+                })
+                return {
+                    ...toRefs(state)
+                }
+            },
+            render(_ctx) {
+                // v-if和v-for会生成额外的block，防止更新出问题
+                // template
+                // <div>
+                //     <p v-if='flag'>
+                //         <span>{{ name }}</span>
+                //     </p>
+                //     <div v-else>
+                //         <span>{{ name }}</span>
+                //     </div>
+                // </div>
+                setTimeout(() => {
+                    _ctx.flag = true
+                }, 1000)
+                // let vnode = (_openBlock(), _createElementBlock("div", null, [
+                //     (_ctx.flag)
+                //         ? (_openBlock(), _createElementBlock("p", { key: 0 }, [
+                //             _createElementVNode("span", null, _toDisplayString(_ctx.name), 1 /* TEXT */)
+                //         ]))
+                //         : (_openBlock(), _createElementBlock("div", { key: 1 }, [
+                //             _createElementVNode("span", null, _toDisplayString(_ctx.name), 1 /* TEXT */)
+                //         ]))
+                // ]))
+                // template STABLE_FRAGMENT
+                // 稳定序列
+                // < div >
+                //     <div v-for="item in 3">{{ name }}</div>
+                // </div >
+
+                // let vnode = (_openBlock(), _createElementBlock("div", null, [
+                //     (_openBlock(), _createElementBlock(_Fragment, null, _renderList(3, (item) => {
+                //         return _createElementVNode("div", null, _toDisplayString(_ctx.name), 1 /* TEXT */)
+                //     }), 64 /* STABLE_FRAGMENT */))
+                // ]))
+
+
+                // <div>
+                //     <div v-for="(item,index) in fruit" :key='index'>{{item}}</div>
+                // </div>
+                // 不稳定序列
+                let vnode = (_openBlock(), _createElementBlock("div", null, [
+                    (_openBlock(true), _createElementBlock(_Fragment, null, _renderList(_ctx.fruit, (item, index) => {
+                    return (_openBlock(), _createElementBlock("div", { key: index }, _toDisplayString(item), 1 /* TEXT */))
+                    }), 128 /* KEYED_FRAGMENT */))
+                ]))
+                console.log(vnode)
+                return vnode
+            }
+        }
+        render(h(VueComponent, null), app)
+
+        // 模板编译优化，增添了patchFlag来标识哪些节点是动态的
+        // block来收集节点，为不稳定结构的也创建block节点，实现blockTree 做到靶向更新
+        // 优化（静态提升(属性的提升和节点的提升), 函数的缓存，预解析字符串等)
+        // 结论 ： 写模板的性能比直接写h函数更好一些， （当然可以手写openBlock， createElementBlock， createElementVnode , 需要了解patchFlag的作用）
+    </script>
+</body>
+
+</html>
