@@ -46,7 +46,7 @@ export const enum PatchFlags{
     PROPS = 1 << 3, // 出了class/style动态属性
     FULL_PROPS = 1 << 4, // 有key，需要完整diff
     HYDRATE_EVENTS = 1 << 5,// 挂载过事件的
-    STABEL_FRAGMENT = 1 << 6, // 稳定序列，子节点顺序不会变化
+    STABLE_FRAGMENT = 1 << 6, // 稳定序列，子节点顺序不会变化
     KEYED_FRAGMENT = 1 << 7, // 子节点有key的fragment
     UNKEYED_FRAGMENT = 1 << 8, // 子节点没有key的fragment
     NEED_PATCH = 1 << 9, // 进行非props比较，ref比较
