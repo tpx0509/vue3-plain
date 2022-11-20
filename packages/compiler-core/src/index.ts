@@ -13,6 +13,9 @@ function createParserContext(template) {
 
 
 function isEnd(context) {
+    if(context.source.startsWith('</')) {
+        return true
+    }
     return !context.source // 如果解析完毕后字符串为空表示解析完毕
 }
 // 获取位置的信息，根据当前的上下文
@@ -43,8 +46,99 @@ function advanceBy(context,endIndex) {
 }
 
 // 删空格
-function advanceSpace(context) {
+function advanceBySpaces(context) {
+    let match = /^[ \t\r\n]+/.exec(context.source)
+    if(match) {
+        advanceBy(context,match[0].length)
+    }
+}
+function parseAttributeValue(context) {
+     const start = getCursor(context)
+     let quote = context.source[0]
+     let content
+     if(quote === '"' || quote === "'") { // 有引号
+          advanceBy(context,1) // 删'
+          const endIndex = context.source.indexOf(quote) // 找到另一个引号
+          content = parseTextData(context,endIndex);
+          advanceBy(context,1) // 删'
+     }else {
+        const endIndex = context.source.search(/\s|>/) // 找到空格位置|>就是结束
+        content = parseTextData(context,endIndex);
+     }
+     return {
+         content,
+         loc : getSelection(context,start)
+     }
+}
+
+function parseAttribute(context) {
+    let start = getCursor(context)
+    let match = /^[^\t\r\n\f />][^\t\r\n\f />=]*/.exec(context.source)
+    if(match) {
+        let name = match[0] // 属性的名字
+        advanceBy(context,name.length)
+        advanceBySpaces(context)
+        advanceBy(context,1) // 删掉=
+        let value = parseAttributeValue(context)
+        return {
+            type : NodeTypes.ATTRIBUTE,
+            name,
+            value : {
+                type : NodeTypes.TEXT,
+                ...value
+            },
+            loc : getSelection(context,start)
+        }
+    }
+   
      
+}
+function parseAttributes(context) {
+    let props = []
+    while(context.source.length > 0 && !context.source.startsWith('>')) {
+         const prop = parseAttribute(context)
+         props.push(prop)
+         advanceBySpaces(context)
+    }
+    return props
+}
+
+function parseTag(context) {
+    const start = getCursor(context)
+    const match = /^<\/?([a-z][^ \t\r\n>]*)/.exec(context.source)
+    const tag = match[1] // 标签名
+    advanceBy(context,match[0].length) // 删除整个标签
+    advanceBySpaces(context)
+    // 处理属性
+    let props = parseAttributes(context)
+
+    let isSelfClosing = context.source.startsWith('/>') // 是不是自闭和标签 <img />
+    advanceBy(context,isSelfClosing?2:1)
+    // 内容
+    return {
+        type: NodeTypes.ELEMENT,
+        props,
+        tag,
+        isSelfClosing,
+        children:[],
+        loc : getSelection(context,start)
+    }
+}
+// 处理元素
+function parseElement(context) {
+    // <div>123</div> <img />
+    let ele = parseTag(context)
+    // 处理标签中间的内容
+    let children = parseChildren(context) // 有可能没有儿子，所以isEnd函数里面加个判断 结束标签开头的就跳过
+    ele.children = children
+    // </div>
+    // 如果有结束标签，直接干掉
+    if(context.source.startsWith('</')) {
+        parseTag(context) // 这个就可以直接删掉结束标签，返回值不关心
+        // 更新位置信息
+        ele.loc = getSelection(context,ele.loc.start)
+    }
+    return ele
 }
 // 处理表达式
 function parseInterPolation(context) {
@@ -125,12 +219,16 @@ function parse(template) {
     // < 元素
     // {{}}表达式
     // 文本
+    return parseChildren(context)
+    
+}
+function parseChildren(context) {
     const nodes = []
     while (!isEnd(context)) {
         let note
         const { source } = context
         if (source.startsWith('<')) { // 元素
-            note = '元素'
+            note = parseElement(context)
         } else if (source.startsWith('{{')) {
             note = parseInterPolation(context)
         }
@@ -141,7 +239,6 @@ function parse(template) {
     }
     return nodes
 }
-
 
 export function compile(template) {
     // 讲模板转成抽象语法树
