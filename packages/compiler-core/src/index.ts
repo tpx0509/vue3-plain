@@ -211,6 +211,8 @@ function parseText(context) {
         loc:getSelection(context,start)
     }
 }
+
+
 function parse(template) {
     // 创建一个解析的上下文 来进行处理
     const context = createParserContext(template)
@@ -219,25 +221,42 @@ function parse(template) {
     // < 元素
     // {{}}表达式
     // 文本
-    return parseChildren(context)
+    let start = getCursor(context)
+    // 包裹一层Fragment
+    return createRoot(parseChildren(context),getSelection(context,start)) 
     
+}
+// 创建根节点
+function createRoot(children,loc) {
+    return {
+        type : NodeTypes.ROOT,
+        children,
+        loc
+    }
 }
 function parseChildren(context) {
     const nodes = []
     while (!isEnd(context)) {
-        let note
+        let node
         const { source } = context
         if (source.startsWith('<')) { // 元素
-            note = parseElement(context)
+            node = parseElement(context)
         } else if (source.startsWith('{{')) {
-            note = parseInterPolation(context)
+            node = parseInterPolation(context)
         }
-        if (!note) { // 文本
-            note = parseText(context)
+        if (!node) { // 文本
+           node = parseText(context)
         }
-        nodes.push(note)
+        nodes.push(node)
     }
-    return nodes
+    nodes.forEach((node,i) => {
+       if(node.type === NodeTypes.TEXT) {
+            if(!/[^\t\r\n\f ]/.test(node.content)) {// 过滤掉空节点
+                nodes[i] = null
+            }
+        } 
+    })
+    return nodes.filter(Boolean)
 }
 
 export function compile(template) {

@@ -14,7 +14,15 @@
         
         // aaaa<a>{{ aa }}</a>`))
 
-        console.log('compile',compile(`<a></a><div style='font-size:10px;' a=1   b=2  c="3">123123<p>ppppppppppp</p></div>123123{{ 2323 }}`))
+        console.log('compile',compile(`<a></a>
+        <div style='font-size:10px;' a=1   b=2  c="3">123123<p>ppppppppppp</p>
+            
+        </div>
+
+
+        123123{{ 2323 }}
+        
+        `))
         // console.log('compile',compile(`{{ abc }}<div>123</div>`))
     </script>
 </body>
