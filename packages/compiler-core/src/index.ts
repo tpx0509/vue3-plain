@@ -15,32 +15,70 @@ function createParserContext(template) {
 function isEnd(context) {
     return !context.source // 如果解析完毕后字符串为空表示解析完毕
 }
-
+// 获取位置的信息，根据当前的上下文
 function getCursor(context) {
      let { line,column,offset} = context
      return { line,column,offset}
 }
+// 更新信息(行，列，偏移)
 function advancePositionWithMutation(context,source,endIndex) {
     let linesCount=0;
     let linePos=-1
     for (let i = 0; i < endIndex; i++) {
         if (source.charCodeAt(i) === 10) { // 换行
             linesCount++
-            linePos = i
+            linePos = i // 记录换行时的位置，更新列信息的时候要减去这个
         }
     }
-    console.log('linePos',linePos)
     context.line += linesCount
     context.column = linePos === -1 ? context.column + endIndex : endIndex - linePos
-    context.offset = endIndex
+    context.offset += endIndex
 }
+// 会进行前进删除
 function advanceBy(context,endIndex) {
     const { source } = context
     // 每次删掉内容的时候，都要更新最新的行列和偏移量信息
     advancePositionWithMutation(context,source,endIndex)
     context.source = source.slice(endIndex)
-    console.log('行列信息',context)
 }
+
+// 删空格
+function advanceSpace(context) {
+     
+}
+// 处理表达式
+function parseInterPolation(context) {
+    const start = getCursor(context)
+    const closeIndex = context.source.indexOf('}}',2)  // 查找结束的大括号
+    advanceBy(context,2) // 前进两步 去掉 {{
+    const innerStart = getCursor(context)
+    const innerEnd = getCursor(context) // 后续拿到内容再通过advancePositionWithMutation更新结束信息
+    
+    // 拿到原始的内容
+    const rawContentLength = closeIndex - 2
+    const preContent = parseTextData(context,rawContentLength) // 可以拿到大括号中的文本内容，并更新位置信息 （此时已经拿到了表达式中的内容，并且source}}前面的也删除掉了）
+    let content = preContent.trim()
+
+    let startOffset = preContent.indexOf(content) 
+    // 有值的话代表前面是有空格的，需要更新信息
+    if(startOffset > 0) {
+        advancePositionWithMutation(innerStart,preContent,startOffset)
+    }
+    let endOffset = startOffset + content.length
+    advancePositionWithMutation(innerEnd,preContent,endOffset)
+    advanceBy(context,2) // 去掉 }}
+    return {
+        type : NodeTypes.INTERPOLATION, // 表达式
+        content: {
+             type : NodeTypes.SIMPLE_EXPRESSION, // 表达式里的内容
+             content,
+             loc:getSelection(context,innerStart,innerEnd)
+        },
+        loc : getSelection(context,start)
+    }
+
+}
+// 处理文本内容，并且更新最新的偏移量信息
 function parseTextData(context,endIndex) {
     const rawText = context.source.slice(0,endIndex)
 
@@ -49,7 +87,8 @@ function parseTextData(context,endIndex) {
     return rawText
     
 }
-function getSelection(context,start,end=getCursor(context)) {
+function getSelection(context,start,end?) {
+    end = end || getCursor(context)
     return {
         start,
         end,
@@ -71,7 +110,6 @@ function parseText(context) {
     const start = getCursor(context) // 开始
     //取内容
     const content = parseTextData(context,endIndex)
-    console.log(start,context)
     // 再获取结束的位置
     return {
         type:NodeTypes.TEXT,
@@ -94,16 +132,14 @@ function parse(template) {
         if (source.startsWith('<')) { // 元素
             note = '元素'
         } else if (source.startsWith('{{')) {
-            note = '表达式'
+            note = parseInterPolation(context)
         }
         if (!note) { // 文本
             note = parseText(context)
-            
         }
         nodes.push(note)
-        console.log('nodes',nodes)
-        break;
     }
+    return nodes
 }
 
 
