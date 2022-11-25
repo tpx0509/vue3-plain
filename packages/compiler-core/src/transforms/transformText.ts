@@ -59,7 +59,7 @@ export function transformText(node, context) {
               children[i] = {
                  type : NodeTypes.TEXT_CALL, // 要用createTextNode来创建
                  child,
-                 codeGenNode : createCallExpression(context,callArgs)
+                 codegenNode : createCallExpression(context,callArgs)
               }
            }
         }

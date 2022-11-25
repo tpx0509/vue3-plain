@@ -26,7 +26,7 @@ export function transformElement(node, context) {
         }else if(node.children.length > 1) {
           childrenNode = node.children
         }
-        node.codeGenNode = createVnodeCall(context,vnodeTag,propsExpression,childrenNode)
+        node.codegenNode = createVnodeCall(context,vnodeTag,propsExpression,childrenNode)
     };
   }
 }

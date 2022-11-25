@@ -1,5 +1,5 @@
-import { NodeTypes } from "./ast";
-import { TO_DISPLAY_STRING } from "./runtimeHelpers";
+import { NodeTypes, createVnodeCall } from "./ast";
+import { TO_DISPLAY_STRING, CREATE_ELEMENT_VNODE, OPEN_BLOCK, CREATE_ELEMENT_BLOCK,FRAGMENT } from "./runtimeHelpers";
 import { transformElement } from "./transforms/transformElement";
 import { transformExpression } from "./transforms/transformExpression";
 import { transformText } from "./transforms/transformText";
@@ -16,6 +16,17 @@ function createTransformContext(root) {
       let count = context.helpers.get(name) || 0;
       context.helpers.set(name, count + 1);
       return name
+    },
+    removeHelper(name) {
+      let count = context.helpers.get(name);
+      if(count) {
+         const currentCount = count - 1
+         if(!currentCount) {
+            context.helpers.delete(name)
+         }else {
+            context.helpers.set(name,currentCount)
+         }
+      }
     },
     // 节点的转化方法
     nodeTransforms: [transformElement, transformText, transformExpression],
@@ -57,8 +68,40 @@ function traverse(node, context) {
   }
     
 }
+
+function createRootCodegen(ast,context) {
+  let { children } = ast
+  // 只有一个根节点
+  if(children.length === 1) {
+       let child = children[0]
+      // 只处理元素， 如果只有一个文本，不需要处理
+      if(child.type === NodeTypes.ELEMENT && child.codegenNode) {
+          ast.codegenNode = child.codegenNode
+          // 不再调用createElementVnode，调用的是openBlock和createElementBlock
+          context.removeHelper(CREATE_ELEMENT_VNODE)
+          context.helper(OPEN_BLOCK)
+          context.helper(CREATE_ELEMENT_BLOCK)
+          ast.codegenNode.isBlock = true // 只有一个元素，那么当前元素是一个block节点，并且使用的是createElementBlock
+      }else {
+         ast.codegenNode = child.codegenNode
+      }
+  }else {
+      // 多个根节点，调用的是openBlock和createElementBlock,同时将tag替换成fragment
+      ast.codegenNode = createVnodeCall(context,context.helper(FRAGMENT),null,children)
+      context.helper(OPEN_BLOCK)
+      context.helper(CREATE_ELEMENT_BLOCK)
+      ast.codegenNode.isBlock = true
+  }
+
+  console.log(context.helpers.keys())
+}
 export function transform(ast) {
   // 对树进行遍历
   const context = createTransformContext(ast);
   traverse(ast, context);
+
+  // 再对根节点做一层转化
+  // 如果有两个根节点。需要加Fragment
+  // 如果只有一个节点，并且只有一个孩子，需要将createElementVnode 换成 openBlock和createElementBlock
+  createRootCodegen(ast,context)
 }
