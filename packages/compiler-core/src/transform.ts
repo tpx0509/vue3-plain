@@ -104,4 +104,6 @@ export function transform(ast) {
   // 如果有两个根节点。需要加Fragment
   // 如果只有一个节点，并且只有一个孩子，需要将createElementVnode 换成 openBlock和createElementBlock
   createRootCodegen(ast,context)
+
+  ast.helpers = [...context.helpers.keys()]
 }
