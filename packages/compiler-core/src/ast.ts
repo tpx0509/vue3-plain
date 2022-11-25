@@ -1,3 +1,5 @@
+import { CREATE_TEXT } from "./runtimeHelpers"
+
 export const enum NodeTypes {
      ROOT,// 根节点
      ELEMENT,// 元素
@@ -16,4 +18,13 @@ export const enum NodeTypes {
      //codegen
      VNODE_CALL, //元素调用
      JS_CALL_EXPRESSION // js调用表达式
+}
+
+export function createCallExpression(context,args) {
+     const callee = context.helper(CREATE_TEXT)
+     return {
+          type : NodeTypes.JS_CALL_EXPRESSION,
+          callee,
+          arguments : args
+     }
 }

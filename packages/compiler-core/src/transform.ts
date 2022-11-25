@@ -1,8 +1,8 @@
 import { NodeTypes } from "./ast";
 import { TO_DISPLAY_STRING } from "./runtimeHelpers";
-import { transformText } from "./transforms/transformElement";
+import { transformElement } from "./transforms/transformElement";
 import { transformExpression } from "./transforms/transformExpression";
-import { transformElement } from "./transforms/transformText";
+import { transformText } from "./transforms/transformText";
 
 
 
@@ -15,6 +15,7 @@ function createTransformContext(root) {
       // 根据使用过的方法进行优化
       let count = context.helpers.get(name) || 0;
       context.helpers.set(name, count + 1);
+      return name
     },
     // 节点的转化方法
     nodeTransforms: [transformElement, transformText, transformExpression],
