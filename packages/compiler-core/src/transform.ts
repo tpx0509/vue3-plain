@@ -83,17 +83,16 @@ function createRootCodegen(ast,context) {
           context.helper(CREATE_ELEMENT_BLOCK)
           ast.codegenNode.isBlock = true // 只有一个元素，那么当前元素是一个block节点，并且使用的是createElementBlock
       }else {
-         ast.codegenNode = child.codegenNode
+         ast.codegenNode = child
       }
   }else {
+      if(!children.length) return;
       // 多个根节点，调用的是openBlock和createElementBlock,同时将tag替换成fragment
       ast.codegenNode = createVnodeCall(context,context.helper(FRAGMENT),null,children)
       context.helper(OPEN_BLOCK)
       context.helper(CREATE_ELEMENT_BLOCK)
       ast.codegenNode.isBlock = true
   }
-
-  console.log(context.helpers.keys())
 }
 export function transform(ast) {
   // 对树进行遍历

@@ -18,7 +18,7 @@ export function transformElement(node, context) {
             })
         }
         // 创建一个属性的表达式
-        let propsExpression = properties.length > 0 ? createObjectExpression(context) : null
+        let propsExpression = properties.length > 0 ? createObjectExpression(properties) : null
         // 处理孩子
         let childrenNode = null
         if(node.children.length === 1) {
