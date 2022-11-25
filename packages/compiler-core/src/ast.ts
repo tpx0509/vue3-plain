@@ -1,4 +1,4 @@
-import { CREATE_TEXT } from "./runtimeHelpers"
+import { CREATE_TEXT, CREATE_ELEMENT_VNODE } from "./runtimeHelpers"
 
 export const enum NodeTypes {
      ROOT,// 根节点
@@ -17,14 +17,36 @@ export const enum NodeTypes {
      TEXT_CALL,//文本调用
      //codegen
      VNODE_CALL, //元素调用
-     JS_CALL_EXPRESSION // js调用表达式
+     JS_CALL_EXPRESSION, // js调用表达式
+     JS_OBJECT_EXPRESSION // // 对象表达式
 }
 
-export function createCallExpression(context,args) {
+export function createCallExpression(context, args) {
      const callee = context.helper(CREATE_TEXT)
      return {
-          type : NodeTypes.JS_CALL_EXPRESSION,
+          type: NodeTypes.JS_CALL_EXPRESSION,
           callee,
-          arguments : args
+          arguments: args
      }
 }
+
+export function createObjectExpression(properties) {
+     return {
+          type: NodeTypes.JS_OBJECT_EXPRESSION,
+          properties
+     }
+}
+
+export function createVnodeCall(context,vnodeTag,propsExpression,childrenNode) {
+      context.helper(CREATE_ELEMENT_VNODE);
+      return {
+          type : NodeTypes.VNODE_CALL,
+          tag : vnodeTag,
+          props: propsExpression,
+          children: childrenNode
+      }
+}
+
+// TEXT_CALL -> 文本的意思  JS_CALL_EXPRESSION 调用文本表达式
+
+// VNODE_CALL -> 元素  JS_OBJECT_EXPRESSION 属性
