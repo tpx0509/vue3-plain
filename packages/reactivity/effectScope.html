@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>effectScope</title>
+</head>
+
+<body>
+    <div id="app">
+    </div>
+    <div id="other"></div>
+    <script src="./dist/reactivity.global.js"></script>
+    <!-- <script src="../../node_modules/vue/dist/vue.global.js"></script> -->
+    <script>
+        let { ref, watch, effect, reactive, toRefs, proxyRefs, effectScope } = VueReactivity;
+        // let { ref,toRefs,effect,reactive,proxyRefs,effectScope } = Vue;
+
+
+        let state = reactive({
+            name: 'tpx'
+        })
+
+        let scope = effectScope()
+        
+
+        scope.run(() => {
+            effect(() => {
+                console.log(state.name,'outer')
+            })
+            effect(() => {
+                console.log(state.name,'outer')
+            })
+            effect(() => {
+                console.log(state.name,'outer')
+            })
+            let innerScope = effectScope(true) // true代表独立的，我的作用域不会被停止
+            innerScope.run(() => {
+                effect(() => {
+                    console.log(state.name, 'inner')
+                })
+                effect(() => {
+                    console.log(state.name, 'inner')
+                })
+                effect(() => {
+                    console.log(state.name, 'inner')
+                })
+            })
+        })
+        scope.stop() // 会停掉run里面的所有effect
+        setTimeout(() => {
+            state.name = 'tianpeixin'
+        }, 1000)
+    </script>
+</body>
+
+</html>

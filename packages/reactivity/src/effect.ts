@@ -1,10 +1,14 @@
+import { recordEffectScope } from ".";
+
 export let activeEffect = null;
 
 export class ReactiveEffect {
     public active = true
     public parent = null
     public deps = []
-    constructor(public fn,public scheduler?) {}
+    constructor(public fn,public scheduler?) {
+        recordEffectScope(this) // effectScope使用
+    }
     run() { 
         // 执行过程中会触发getter，setter。 需要收集依赖，
         // 这里将当前effect保存为activeEffect，
