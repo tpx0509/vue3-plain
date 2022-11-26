@@ -9,4 +9,6 @@ export * from './component'
 
 export * from './apiInject'
 
+export * from './asyncComponent'
+
 export { TeleportImpl as Teleport } from './components/teleport'

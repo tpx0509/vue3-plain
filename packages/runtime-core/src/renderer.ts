@@ -428,7 +428,12 @@ export function createRenderer(renderOptions) {
     }
   };
   const unmount = (vnode) => {
-    hostRemove(vnode.component ? vnode.component.subTree.el : vnode.el);
+    if(vnode.type === Fragment) {
+       return unmountChildren(vnode)
+    }else if(vnode.shapeFlag & ShapeFlags.COMPONENT) {
+      return unmount(vnode.component.subTree);
+    }
+    hostRemove(vnode.el);
   };
   const render = (vnode, container) => {
     // 渲染过程是用你传入的renderOptions来渲染

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>异步组件</title>
+    <style>
+        .aaa {
+            font-size: 90px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer, h, render, Text, reactive, provide, inject,
+            getCurrentInstance, Teleport, Fragment, defineAsyncComponent } = VueRuntimeDOM
+
+        let myComponent = {
+            render() {
+                return h('p', 'my component')
+            }
+        }
+        let errorComponent = {
+            render() {
+                return h('p',{ style: { color : 'red'} },'load error')
+            }
+        }
+        let loadingComponent = {
+            render() {
+                return h('p',{ style: { color : 'blue'} },'loading....')
+            }
+        }
+        let retryTime = 0
+        let VueComponent = defineAsyncComponent({
+            loader() {
+                return new Promise((resolve,reject) => {
+                    setTimeout(() => {
+                        return reject(myComponent)
+                    }, 3000)
+                })
+            },
+            delay:0,
+            errorComponent,
+            loadingComponent,
+            onError(err,retry,fail) {
+                // 会返回一个重试，和彻底让失败的函数
+                console.log(err)
+                if(retryTime <= 2) {
+                    retry()
+                    retryTime++   
+                }else {
+                    fail()
+                }
+                
+            }
+        })
+
+        render(h(VueComponent), app)
+
+    </script>
+</body>
+
+</html>

@@ -16,7 +16,7 @@ import { createVnode, isVnode } from "./vnode"
 
 
 
-export function h(type,propsOrChildren,children) {
+export function h(type,propsOrChildren?,children?) {
     let l = arguments.length
 
     if(l===2) {
