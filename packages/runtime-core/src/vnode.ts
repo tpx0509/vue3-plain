@@ -1,5 +1,6 @@
 import { isObject } from './../../shared/src/index';
 import { isArray, isString, ShapeFlags } from "@vue/shared";
+import { isTeleport } from './components/teleport';
 
 export const Text = Symbol('Text')
 export const Fragment = Symbol('Fragment')
@@ -20,6 +21,7 @@ export function createVnode(type,props,children = null,patchFlag=0) {
      // 对象的话认为是一个有状态组件
      let shapeFlag = 
      isString(type) ? ShapeFlags.ELEMENT :
+     isTeleport(type) ? ShapeFlags.TELEPORT:
      isObject(type) ? ShapeFlags.STATEFUL_COMPONENT : 0 ;
      const vnode = {
          type,
