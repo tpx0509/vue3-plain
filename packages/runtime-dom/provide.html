@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .aaa {
+             font-size : 90px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer,h,render,Text,reactive,provide,inject,getCurrentInstance } = VueRuntimeDOM
+
+        /*
+            provide 和 inject就是为了实现跨组件通信，在我们组件库中，想跨级通信，那么就采用provide/inject
+            
+            使用的情况只能是 父->子->孙子->曾孙
+            实现原理是在父组件上增了了一个provies属性，当调用privide的时候会向属性中存值
+            在渲染子组件的时候 子会将父的provides放到自己身上 
+            （放到自己身上只是为了让自己的儿子inject时可以读取，并不是让自己使用，inject读取属性永远都是读取父组件的provides）
+            调用inject时会取父组件中的provies值，(找不到的话父组件的原型链会一层层往上找，vue3利用原型链，取代了vue2的递归查找)
+        */
+        let ChildComponent = {
+            name:'ChildComponent',
+            setup() {
+                let instance = getCurrentInstance()
+                let state = reactive({
+                    name : '田培鑫'
+                })
+                let state2 = inject('parentComponent')
+                // provide('parentComponent',state)
+                return {
+                    state
+                }
+            },
+            render() {
+                 return h(GrandsonComponent)
+            }
+        }
+        let GrandsonComponent = {
+            name:'GrandsonComponent',
+            setup() {
+                let state = inject('parentComponent')
+                return {
+                    state
+                }
+            },
+            render() {
+                 return h('div',this.state.name)
+            }
+        }
+        let ParentComponent ={
+             name:'parentComponent',
+             setup() {
+                const state = reactive({
+                    name:'tpx'
+                })
+                provide('parentComponent',state)
+                return {
+                     state
+                }
+             },
+             render() {
+                 setTimeout(() => {
+                    this.state.name = 'tianpeixin'
+                 },1000)
+                return h(ChildComponent)
+             }
+        }
+
+        render(h(ParentComponent),app)
+        
+    </script>
+</body>
+</html>

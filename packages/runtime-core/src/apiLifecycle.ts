@@ -1,4 +1,4 @@
-import { curInstance, setCurrentInstance } from "./component"
+import { currentInstance, setCurrentInstance } from "./component"
 
 export const enum LifecycleHooks {
     ONBEFOREMOUNT = 'bm',
@@ -9,7 +9,7 @@ export const enum LifecycleHooks {
 
 // 工厂模式
 const createHook = (type) => {
-    return (hook, target = curInstance) => { // hook 需要绑定到对应的实例上
+    return (hook, target = currentInstance) => { // hook 需要绑定到对应的实例上
         if (target) { // 关联此currentInstance和hook
             const hooks = target[type] || (target[type] = [])
             // 函数切片 实现在生命周期函数中也可以取到currentInstance

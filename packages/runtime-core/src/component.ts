@@ -3,13 +3,15 @@ import { hasOwn, isFunction, isObject, ShapeFlags } from "@vue/shared";
 import { initProps } from "./componentProps";
 
 
-export let curInstance = null
-export const getCurrentInstance = () => curInstance
-export const setCurrentInstance = (instance) => curInstance = instance
+export let currentInstance = null
+export const getCurrentInstance = () => currentInstance
+export const setCurrentInstance = (instance) => currentInstance = instance
 
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode,parent) {
+  // 组件的实例
   let instance = {
-    // 组件的实例
+    provies: parent ? parent.provies : Object.create(null), // 创建组件实例时默认就是取父亲的provies
+    parent,
     vnode, // 组件的虚拟节点
     isMounted: false,
     propsOptions: vnode.type.props,

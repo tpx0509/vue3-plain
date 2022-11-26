@@ -38,25 +38,25 @@ export function createRenderer(renderOptions) {
       }
     }
   };
-  const processFragment = (n1, n2, container) => {
+  const processFragment = (n1, n2, container,parentComponent) => {
     if (n1 === null) {
-      mountChildren(n2.children, container);
+      mountChildren(n2.children, container,parentComponent);
     } else {
       if(n2.dynamicChildren) { // fragment之间的优化，靶向更新
         // 只比较动态节点
-        patchBlockChildren(n1,n2)
+        patchBlockChildren(n1,n2,parentComponent)
       }else {
-        patchChildren(n1, n2, container);
+        patchChildren(n1, n2, container,parentComponent);
       }
       
     }
   };
-  const processElement = (n1, n2, container, anchor) => {
+  const processElement = (n1, n2, container, anchor,parentComponent) => {
     if (n1 === null) {
       // 初次渲染，直接挂载即可
-      mountElement(n2, container, anchor);
+      mountElement(n2, container, anchor,parentComponent);
     } else {
-      patchElement(n1, n2);
+      patchElement(n1, n2,parentComponent);
     }
   };
   const shouldUpdateComponent = (n1,n2) => {
@@ -79,10 +79,10 @@ export function createRenderer(renderOptions) {
       }
      
   }
-  const processComponent = (n1, n2, container, anchor) => {
+  const processComponent = (n1, n2, container, anchor,parentComponent) => {
     // 统一处理组件，里面再区分是有状态组件还是函数式组件
     if (n1 === null) {
-      n2.instance = mountComponent(n2, container, anchor);
+      n2.instance = mountComponent(n2, container, anchor,parentComponent);
     } else {
       // 组件的更新靠的是props
       updateComponent(n1,n2)
@@ -90,13 +90,12 @@ export function createRenderer(renderOptions) {
   };
 
   
-  const mountComponent = (vnode, container, anchor) => {
+  const mountComponent = (vnode, container, anchor,parentComponent) => {
     // 1,创建组件实例
-    let instance = vnode.component = createComponentInstance(vnode);
+    let instance = vnode.component = createComponentInstance(vnode,parentComponent);
 
     // 2,给实例上赋值
     setupComponent(instance)
-
     // 3,创建effect
 
     setupRenderEffect(instance,container,anchor)
@@ -119,7 +118,7 @@ export function createRenderer(renderOptions) {
         setCurrentInstance(instance)
         let subTree = render.call(instance.proxy,instance.proxy);
         setCurrentInstance(null)
-        patch(null, subTree, container, anchor); // 创造了subTree的真实节点并且插入了
+        patch(null, subTree, container, anchor,instance); // 创造了subTree的真实节点并且插入了   (最后一个参数instance，就是传给子组件的parent)
         // 执行onMounted钩子
         invokeArrFns(instance[LifecycleHooks.ONMOUNTED])
         instance.subTree = subTree;
@@ -162,10 +161,10 @@ export function createRenderer(renderOptions) {
       normalize(children, i);
     }
   };
-  const mountChildren = (children, container) => {
+  const mountChildren = (children, container,parentComponent) => {
     for (let i = 0; i < children.length; i++) {
       let child = normalize(children, i);
-      patch(null, child, container);
+      patch(null, child, container,parentComponent);
     }
   };
   const unmountChildren = (children) => {
@@ -174,7 +173,7 @@ export function createRenderer(renderOptions) {
     }
   };
 
-  const mountElement = (vnode, container, anchor) => {
+  const mountElement = (vnode, container, anchor,parentComponent) => {
     let { type, props, children, shapeFlag } = vnode;
     let el = (vnode.el = hostCreateElement(type)); // 将真实元素挂在到这个虚拟节点上，后续用于复用节点和更新
 
@@ -189,7 +188,7 @@ export function createRenderer(renderOptions) {
       hostSetElementText(el, children);
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       // 数组
-      mountChildren(children, el);
+      mountChildren(children, el,parentComponent);
     }
     hostInsert(el, container, anchor);
   };
@@ -206,13 +205,13 @@ export function createRenderer(renderOptions) {
       }
     }
   };
-  const patchBlockChildren = (n1,n2) => {
+  const patchBlockChildren = (n1,n2,parentComponent) => {
      for(let i=0; i< n2.dynamicChildren.length; i++) {
-        patchElement(n1.dynamicChildren[i],n2.dynamicChildren[i])
+        patchElement(n1.dynamicChildren[i],n2.dynamicChildren[i],parentComponent)
      }
   }
   let time = 0
-  const patchElement = (n1, n2) => {
+  const patchElement = (n1, n2,parentComponent) => {
     // 之前元素，现在也是元素 更新流程
     // 节点复用
     console.log(time++)
@@ -235,14 +234,14 @@ export function createRenderer(renderOptions) {
     // 对比儿子
     if(n2.dynamicChildren) { // 元素之间的优化，靶向更新
       // 只比较动态节点
-      patchBlockChildren(n1,n2)
+      patchBlockChildren(n1,n2,parentComponent)
     }else {
       // 全量diff比对
-      patchChildren(n1, n2, el);
+      patchChildren(n1, n2, el,parentComponent);
     }
     
   };
-  const patchChildren = (n1, n2, el) => {
+  const patchChildren = (n1, n2, el,parentComponent) => {
     let c1 = n1.children;
     let c2 = n2.children;
     let prevShapeFlag = n1.shapeFlag;
@@ -276,7 +275,7 @@ export function createRenderer(renderOptions) {
           hostSetElementText(el, "");
         }
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-          mountChildren(c2, el); // 新的是数组,进行挂载 （else的话就是新的是空 什么也不做）
+          mountChildren(c2, el,parentComponent); // 新的是数组,进行挂载 （else的话就是新的是空 什么也不做）
         }
       }
     }
@@ -394,7 +393,7 @@ export function createRenderer(renderOptions) {
       }
     }
   };
-  const patch = (n1, n2, container, anchor = null) => {
+  const patch = (n1, n2, container, anchor = null,parentComponent = null) => {
     if (n1 === n2) return;
     if (n1 && !isSameVnode(n1, n2)) {
       // 如果不是相同的vnode，直接把旧的节点卸载掉
@@ -408,14 +407,14 @@ export function createRenderer(renderOptions) {
         processText(n1, n2, container);
         break;
       case Fragment: // 处理fragment
-        processFragment(n1, n2, container);
+        processFragment(n1, n2, container,parentComponent);
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
           // 处理元素
-          processElement(n1, n2, container, anchor);
+          processElement(n1, n2, container, anchor,parentComponent);
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
-          processComponent(n1, n2, container, anchor);
+          processComponent(n1, n2, container, anchor,parentComponent);
         }
     }
   };
