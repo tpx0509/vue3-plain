@@ -1,4 +1,4 @@
-import { isObject } from './../../shared/src/index';
+import { isObject, isFunction } from './../../shared/src/index';
 import { isArray, isString, ShapeFlags } from "@vue/shared";
 import { isTeleport } from './components/teleport';
 
@@ -22,6 +22,7 @@ export function createVnode(type,props,children = null,patchFlag=0) {
      let shapeFlag = 
      isString(type) ? ShapeFlags.ELEMENT :
      isTeleport(type) ? ShapeFlags.TELEPORT:
+     isFunction(type)? ShapeFlags.FUNCTION_COMPONENT:
      isObject(type) ? ShapeFlags.STATEFUL_COMPONENT : 0 ;
      const vnode = {
          type,
@@ -75,4 +76,13 @@ export function createElementBlock(type,props,children,patchFlag) {
 }
 export function toDisplayString(val) {
     return !val ? '' ? isObject(val) : JSON.stringify(val) : String(val)
+}
+
+export function renderComponent(instance) {
+    let { vnode,render,props } = instance
+    if(vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+      return render.call(instance.proxy,instance.proxy)
+    }else {
+      return vnode.type(props) // 函数式组件
+    }
 }

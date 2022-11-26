@@ -4,7 +4,7 @@ import { patchProp } from "packages/runtime-dom/src/patchProp";
 import { createComponentInstance, setupComponent, setCurrentInstance } from "./component";
 import { queueJob } from "./scheduler";
 import { getSequenceIndex } from "./sequence";
-import { createVnode, Fragment, isSameVnode, Text } from "./vnode";
+import { createVnode, Fragment, isSameVnode, Text, renderComponent } from "./vnode";
 import { updateProps, hasPropsChange } from "./componentProps";
 import { LifecycleHooks } from './apiLifecycle';
 
@@ -116,7 +116,7 @@ export function createRenderer(renderOptions) {
         // 执行onbeforeMount钩子
         invokeArrFns(instance[LifecycleHooks.ONBEFOREMOUNT])
         setCurrentInstance(instance)
-        let subTree = render.call(instance.proxy,instance.proxy);
+        let subTree = renderComponent(instance);
         setCurrentInstance(null)
         patch(null, subTree, container, anchor,instance); // 创造了subTree的真实节点并且插入了   (最后一个参数instance，就是传给子组件的parent)
         // 执行onMounted钩子
@@ -133,7 +133,7 @@ export function createRenderer(renderOptions) {
         // 执行onBeforeUpdated钩子
         invokeArrFns(instance[LifecycleHooks.ONBEFOREUPDATE])
         setCurrentInstance(instance)
-        let subTree = render.call(instance.proxy,instance.proxy)
+        let subTree = renderComponent(instance)
         setCurrentInstance(null)
         patch(instance.subTree, subTree, container, anchor);
          // 执行onUpdated钩子

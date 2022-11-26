@@ -1,5 +1,5 @@
 import { reactive } from "@vue/reactivity";
-import { hasOwn } from "@vue/shared";
+import { hasOwn, ShapeFlags } from "@vue/shared";
 
 export function initProps(instance, rawProps) {
   const attrs = {};
@@ -19,6 +19,11 @@ export function initProps(instance, rawProps) {
   // 后续自己实现一下shallowReactive
   instance.props = reactive(props);
   instance.attrs = attrs;
+
+  // props是组件中的，如果是函数式组件，应该用attrs作为props
+  if(instance.vnode.shapeFlag & ShapeFlags.FUNCTION_COMPONENT) {
+     instance.props = instance.attrs
+  }
 }
 
 export function hasPropsChange(prevProps = {}, nextProps = {}) {
