@@ -10,6 +10,7 @@ export const setCurrentInstance = (instance) => currentInstance = instance
 export function createComponentInstance(vnode,parent) {
   // 组件的实例
   let instance = {
+    ctx:{}, // 组件上下文
     provies: parent ? parent.provies : Object.create(null), // 创建组件实例时默认就是取父亲的provies
     parent,
     vnode, // 组件的虚拟节点

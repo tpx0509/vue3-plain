@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>keepAlive</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <!-- <script src="../../node_modules/@vue/runtime-dom/dist/runtime-dom.global.js"></script> -->
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer, h, render, Text, Fragment,
+            onBeforeMount,
+            onUpdated,
+            onBeforeUpdate,
+            onMounted, getCurrentInstance, reactive, toRefs, computed, KeepAlive } = VueRuntimeDOM
+        let M1 = {
+            setup() {
+                onMounted(() => {
+                    console.log('m1 onMounted')
+                })
+            },
+            render() {
+                return h('h1', 'm1')
+            }
+        }
+        let M2 = {
+            setup() {
+                onMounted(() => {
+                    console.log('m2 onMounted')
+                })
+            },
+            render() {
+                return h('h1', 'm2')
+            }
+        }
+        let M3 = {
+            setup() {
+                onMounted(() => {
+                    console.log('m3 onMounted')
+                })
+            },
+            render() {
+                return h('h1', 'm3')
+            }
+        }
+        render(h(KeepAlive, { max:2 }, {
+            default: () => h(M1,{key:'m1'})
+        }), app)
+        setTimeout(() => {
+            render(h(KeepAlive, { max:2 }, {
+                default: () => h(M2,{key:'m2'})
+            }), app)
+        }, 1000)
+        setTimeout(() => {
+            render(h(KeepAlive, { max:2 }, {
+                default: () => h(M3,{key:'m3'})
+            }), app)
+        }, 2000)
+        setTimeout(() => {
+            render(h(KeepAlive, { max:2 }, {
+                default: () => h(M1,{key:'m1'})
+            }), app)
+        }, 3000)
+        setTimeout(() => {
+            render(h(KeepAlive, { max:2 }, {
+                default: () => h(M2,{key:'m2'})
+            }), app)
+        }, 4000)
+    </script>
+</body>
+
+</html>
