@@ -24,6 +24,7 @@ export class ReactiveEffect {
            this.parent = activeEffect 
            activeEffect = this
            // 每次执行之前，都应该先将之前收集的effect都清空，重新收集。
+           // 这一步是为了解决 分支切换
            cleanupEffect(this)
            return this.fn()
         } finally {
@@ -108,10 +109,13 @@ export function triggerEffect(effects) {
 }
 
 function cleanupEffect(effect) {
+    // deps是依赖集合 [set([effect,effect]),set([effect,effect])]
     let { deps } = effect
     for(let i=0; i< deps.length; i++) {
+        // 将effect从依赖集合中删除
          deps[i].delete(effect) // 解除effect，重新依赖收集
     }
+    // 重置数组
     effect.deps.length = 0
 }
 
