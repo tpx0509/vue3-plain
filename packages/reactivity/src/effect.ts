@@ -71,6 +71,8 @@ export function trackEffect(deps,type?:string) {
         if(shouldTract) {
            deps.add(activeEffect)
            // 反向记忆，属性存储了依赖的effect，让effect也存储他依赖的属性的set
+           // deps就是一个与当前副作用函数存在联系的依赖集合
+           // 将其添加到activeEffect.deps数组中
            activeEffect.deps.push(deps)
         }
     }
@@ -107,15 +109,16 @@ export function triggerEffect(effects) {
     }
     
 }
-
+// 每次副作用函数执行时，我们可以先把它从所有与之关联的依赖集合中删除
+// 后续当副作用函数执行完毕后，会重新建立联系
 function cleanupEffect(effect) {
     // deps是依赖集合 [set([effect,effect]),set([effect,effect])]
     let { deps } = effect
     for(let i=0; i< deps.length; i++) {
-        // 将effect从依赖集合中删除
+        // 将effect从依赖集合中删除 （删除引用）
          deps[i].delete(effect) // 解除effect，重新依赖收集
     }
-    // 重置数组
+    // 重置数组 （当前effect的deps）
     effect.deps.length = 0
 }
 
