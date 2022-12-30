@@ -21,7 +21,7 @@ export function watch(source,cb) {
     if(isReactive(source)) {
         // 如果传递的是响应式数据，需要递归遍历一遍这个数据，挨个儿取值。
         // 取值的时候，_effect会进行依赖收集，
-        // 这样后续数据的任何一个属性变化了,都可以监控到。只要一变化就会执行job
+        // 这样后续数据的任何一个属性变化了,都可以监控到。只要一变化就会执行job(job就是scheduler)
         console.log('响应式数据',source)
         getter = () => traversal(source)
     }else if(isFunction(source)) {
