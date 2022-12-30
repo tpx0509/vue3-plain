@@ -16,7 +16,11 @@ function traversal(value,set = new Set()) {
      return value;
 }
 
-export function watch(source,cb) {
+
+type WatchOptions = {
+     immediate : boolean
+}
+export function watch(source,cb,options={} as WatchOptions) {
     let getter;
     if(isReactive(source)) {
         // 如果传递的是响应式数据，需要递归遍历一遍这个数据，挨个儿取值。
@@ -41,9 +45,17 @@ export function watch(source,cb) {
         oldValue = newValue
     }
     let _effect = new ReactiveEffect(getter,job)
-    // _effect.run的执行结果就是getter的执行结果，也就是用户传递的函数的执行结果
-    // 默认执行一次 拿到老值
-    oldValue = _effect.run()
+   
+    
+    if(options.immediate) {
+        // 当immediate为true时立即执行job，从未触发回调执行
+        job()
+    }else{
+         // _effect.run的执行结果就是getter的执行结果，也就是用户传递的函数的执行结果
+        // 默认执行一次 拿到老值
+        oldValue = _effect.run()
+    }
+    
 }
 
 // watch也是基于effect,监控的数据变化了，执行回调

@@ -47,23 +47,27 @@
 
         // watch一个函数则相反，改变此对象会触发，改变对象的属性不会。
         // 因为传入函数watch内部，只会监控它的返回值。不会深度遍历这个对象
-        watch(() => state.address,(newValue,oldValue) => {
-             console.log('watch执行',newValue,oldValue)
-             app.innerHTML = `${state.address.name}`
-        })
+        // watch(() => state.address,(newValue,oldValue) => {
+        //      console.log('watch执行',newValue,oldValue)
+        //      app.innerHTML = `${state.address.name}`
+        // })
 
-        setTimeout(() => {
-             // 不会触发
-            // state.address.name= '新的address地址'
-            // 会触发
-            state.address = {
-                 name : '新的address地址'
-            }
-        },1000)
+        // setTimeout(() => {
+        //      // 不会触发
+        //     // state.address.name= '新的address地址'
+        //     // 会触发
+        //     state.address = {
+        //          name : '新的address地址'
+        //     }
+        // },1000)
 
         // watch 第三个参数
 
-
+        watch(() => state.age,(newValue,oldValue) => {
+            console.log('watch立即执行一次',newValue,oldValue)
+        },{
+            immediate:true
+        })
 
     </script>
 </body>
