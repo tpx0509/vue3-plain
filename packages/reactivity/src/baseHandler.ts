@@ -2,13 +2,17 @@ import { reactive } from './reactive';
 import { isObject } from './../../shared/src/index';
 import { track,trigger } from "./effect"
 export const enum ReactiveFlags {
-    IS_REACTIVE = '__v_isReactive'
+    IS_REACTIVE = '__v_isReactive',
+    RAW = '__v_raw'
 }
 export const mutableHandlers = {
     get(target,key,receiver) {
         // 给代理对象添加一个标识
         if(key === ReactiveFlags.IS_REACTIVE) {
             return true
+        }
+        if(key === ReactiveFlags.RAW) {
+            return target
         }
         // console.log('get',target,key)
         // 依赖收集
@@ -26,11 +30,15 @@ export const mutableHandlers = {
     set(target,key,value,receiver) {
         let oldValue = target[key]
         let result = Reflect.set(target,key,value,receiver)
-        if(oldValue !== value) {
-            // 触发effect
-            trigger(target,key,value,oldValue,'set')
-        }
 
+        console.log(target,receiver,receiver[ReactiveFlags.RAW])
+        
+        if(receiver[ReactiveFlags.RAW] === target) {// 屏蔽由原型引起的更新
+            if(oldValue !== value && (oldValue === oldValue || value === value)) {
+                // 触发effect
+                trigger(target,key,value,oldValue,'set')
+            }   
+        }
         return result
     }
 }

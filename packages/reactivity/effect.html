@@ -161,6 +161,20 @@
         //     state.name4 = 'name4变了'
         //     state.name3 = 'name3变了2333333'
         // },4000)
+
+         const obj = {}
+         const proto = { bar: 'parent' }
+         const child = reactive(obj)
+         const parent = reactive(proto)
+         // 使用 parent 作为 child 的原型
+         Object.setPrototypeOf(child, parent)
+        
+         effect(() => {
+           console.log(child.bar) // 1
+         })
+         // 修改 child.bar 的值
+         child.bar = 2 // 会导致副作用函数重新执行两次  baseHandler set函数中36行进行了处理
+         child.bar = 3
     </script>
 </body>
 </html>
