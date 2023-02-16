@@ -32,6 +32,10 @@ export function defineAsyncComponent(options) {
                 })
 
             }
+            let loadingTimer = null
+            loadingTimer = setTimeout(() => {
+                isLoading.value = true
+            }, delay)
             load()
                 .then((c) => {
                     loadedComponent = c
@@ -40,6 +44,7 @@ export function defineAsyncComponent(options) {
                     isError.value = true
                 }).finally(() => {
                     isLoading.value = false
+                    clearTimeout(loadingTimer)
                 })
 
             if (timeout) {
@@ -47,9 +52,7 @@ export function defineAsyncComponent(options) {
                     isError.value = true
                 }, timeout)
             }
-            setTimeout(() => {
-                isLoading.value = true
-            }, delay)
+            
             return () => {
                 if (loaded.value) {
                     return h(loadedComponent) // 正确组件渲染
