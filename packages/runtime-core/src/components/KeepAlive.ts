@@ -24,9 +24,10 @@ export const KeepAliveImpl = {
     setup(props, { slots }) { // keep-alive本身没有功能，渲染的是插槽
         let pendingCacheKey = null
         let instance = getCurrentInstance()
-        // 我怎么操作dom元素，渲染过程中传给我
+        // 我怎么操作dom元素，渲染过程中传给我(在mountComponent的过程中会给keepAlive组件提供方法)
         let { move, createElement } = instance.ctx.renderer
         let storageContainer = createElement('div') // 为了临时存在缓存节点的一个dom,稍后我们要将渲染好的组件移入进去
+        // KeepAlive组件的实例上会添加两个内部函数deactivate和activate,这两个函数会在渲染器中被调用
         instance.ctx.deactivate = (vnode) => {
             move(vnode, storageContainer)
         }
@@ -55,7 +56,7 @@ export const KeepAliveImpl = {
         return () => {
             
             
-            // keepAlive默认会去slots的default属性，返回的虚拟节点的第一个
+            // keepAlive默认会取slots的default属性，返回的虚拟节点的第一个
             let vnode = slots.default()
             // 看一下vnode是不是组件，只有组件才能缓存
             // 必须是虚拟节点，而且是有状态组件
