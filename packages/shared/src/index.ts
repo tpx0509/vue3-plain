@@ -25,6 +25,14 @@ export const invokeArrFns = (fns) => {
 const hasOwnProperty = Object.prototype.hasOwnProperty
 export const hasOwn = (value, key) => hasOwnProperty.call(value, key)
 
+export const nextFrame = (fn) => {
+     requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+             fn()
+        })
+     })
+}
+
 export const enum ShapeFlags {
     ELEMENT = 1,
     FUNCTION_COMPONENT = 1 << 1,

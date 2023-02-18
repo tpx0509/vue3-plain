@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+         .box {
+            width: 200px;
+            height: 200px;
+            background-color: #cccccc;
+        }
+        /* 进场 */
+        .v-enter-from {
+            transform: translateX(200px);
+        }
+
+        .v-enter-active {
+            transition: transform 1s ease-in-out;
+        }
+
+        .v-enter-to {
+            transform: translateX(0);
+        }
+
+        /* 离场 */
+        /* 初始状态 */
+        .v-leave-from {
+            transform: translateX(0);
+        }
+
+        /* 结束状态 */
+        .v-leave-to {
+            transform: translateX(200px);
+        }
+
+        /* 过渡过程 */
+        .v-leave-active {
+            transition: transform 1s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <button id="btn">卸载</button>
+    <script src="./dist/runtime-dom.global.js"></script>
+    <script>
+
+        let { createRenderer,h,ref,render,reactive,getCurrentInstance,Transition,onBeforeMount,onMounted } = VueRuntimeDOM
+
+
+        render(h(Transition,{
+            name : 'v'
+        },{
+            default:() =>  h('div',{ 'class' : 'box'})
+        }),app)
+
+        btn.addEventListener('click',() => {
+            render(null,app)
+        })
+        
+    </script>
+</body>
+</html>

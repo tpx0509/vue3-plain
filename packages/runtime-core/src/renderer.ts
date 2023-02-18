@@ -136,6 +136,7 @@ export function createRenderer(renderOptions) {
         // 执行onbeforeMount钩子
         invokeArrFns(instance[LifecycleHooks.ONBEFOREMOUNT])
         setCurrentInstance(instance)
+        // 执行render函数 创建subTree
         let subTree = renderComponent(instance);
         setCurrentInstance(null)
         patch(null, subTree, container, anchor,instance); // 创造了subTree的真实节点并且插入了   (最后一个参数instance，就是传给子组件的parent)
@@ -210,7 +211,18 @@ export function createRenderer(renderOptions) {
       // 数组
       mountChildren(children, el,anchor,parentComponent);
     }
+
+    //判断一个vNode是否需要过渡
+    let needTransition = vnode.transition
+    if(needTransition) {
+      // dom插入页面之前调用beforeEnter钩子，并用dom元素作为参数传递
+       vnode.transition.beforeEnter(el)
+    }
     hostInsert(el, container, anchor);
+    if(needTransition) {
+      // dom插入页面之后调用enter钩子，并用dom元素作为参数传递
+       vnode.transition.enter(el)
+    }
   };
 
   const patchProps = (oldProps, newProps, el) => {
@@ -456,7 +468,13 @@ export function createRenderer(renderOptions) {
     }else if(vnode.shapeFlag & ShapeFlags.COMPONENT) {
       return unmount(vnode.component.subTree,parentComponent);
     }
-    hostRemove(vnode.el);
+    let needTransition = vnode.transition
+    if(needTransition) {
+       vnode.transition.leave(vnode.el,hostRemove)
+    }else {
+      hostRemove(vnode.el);
+    }
+    
   };
   const render = (vnode, container) => {
     // 渲染过程是用你传入的renderOptions来渲染
