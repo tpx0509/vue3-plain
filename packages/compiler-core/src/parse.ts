@@ -1,5 +1,12 @@
 import { NodeTypes } from "./ast";
 
+// vue设计思想把这里叫做递归下降算法
+// parseChildren 解析函数是整个状态机的核心，状态迁移操作都在该函数内完成。在 parseChildren 函数运行过程中，为了处理标签节点，
+// 会调用 parseElement 解析函数，这会间接地调用 parseChildren 函数，并产生一个新的状态机。随着标签嵌套层次的增加，
+// 新的状态机会随着parseChildren 函数被递归地调用而不断创建，这就是“递归下降”中“递归”二字的含义。
+// 而上级 parseChildren 函数的调用用于构造上级模板 AST 节点，被递归调用的下级 parseChildren 函数则用于构造下级模板 AST 节点。
+// 最终，会构造出一棵树型结构的模板 AST，这就是“递归下降”中“下降”二字的含义
+
 export function parse(template) {
     // 创建一个解析的上下文 来进行处理
     const context = createParserContext(template)
@@ -83,7 +90,7 @@ function parseAttributeValue(context) {
           content = parseTextData(context,endIndex);
           advanceBy(context,1) // 删'
      }else {
-        const endIndex = context.source.search(/\s|>/) // 找到空格位置|>就是结束
+        const endIndex = context.source.search(/\s|>/) // 找到空格位置|>就是结束(如果属性值没有被引号引用，那么在剩余模板内容中，下一个空白字符之前的所有字符都应该作为属性值)
         content = parseTextData(context,endIndex);
      }
      return {
@@ -235,6 +242,8 @@ function parseText(context) {
 
 function parseChildren(context) {
     const nodes = []
+    // 当解析器遇到开始标签时，会将该标签压入父级节点栈，同时开启新的状态机。
+    // 当解析器遇到结束标签，并且父级节点栈中存在与该标签同名的开始标签节点时，会停止当前正在运行的状态机
     while (!isEnd(context)) {
         let node
         const { source } = context

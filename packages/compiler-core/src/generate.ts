@@ -51,7 +51,6 @@ function genExpression(node,content) {
     content.push(node.content)
 }
 function genVnodeCall(node,content) { // 自己写的，
-    debugger
      if(node.isBlock) {
         content.push(`( _${helperMap[OPEN_BLOCK]}(),_${helperMap[CREATE_ELEMENT_BLOCK]}(`)
         content.push(`${node.tag},null,[`)
