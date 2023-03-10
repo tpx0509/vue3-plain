@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+    </div>
+    <div id="other"></div>
+    <script src="./dist/reactivity.global.js"></script>
+    <!-- <script src="../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script> -->
+    <script>
+        let { effect,ref, reactive,computed } = VueReactivity
+        
+        
+        const state = ref(1)
+
+        const fullName = computed(() => {
+            console.log('computed执行')
+            // console.log(state.value)
+            return () => { // computed中写函数的操作其实跟写methods没区别。 computed内部并没有取值无法利用computed缓存的特性
+                console.log('computed内部函数执行')
+                return state.value+1
+            } 
+
+            // return state.value + 1
+        })
+        const methods = () => {
+            // console.log('methods执行')
+            return state.value+1
+        }
+        effect(() => {
+            app.innerHTML = fullName.value() // 页面之所以能更新是因为这个effect收集了 computed中返回的函数中的取值操作。
+        })
+        
+        setInterval(() => {
+            state.value++
+        },1000)
+
+
+    </script>
+</body>
+</html>
