@@ -34,6 +34,7 @@ export const mutableHandlers = {
         console.log(target,receiver,receiver[ReactiveFlags.RAW])
         
         if(receiver[ReactiveFlags.RAW] === target) {// 屏蔽由原型引起的更新
+            console.log('oldValue,value',oldValue,value)
             if(oldValue !== value && (oldValue === oldValue || value === value)) {
                 // 触发effect
                 trigger(target,key,value,oldValue,'set')
@@ -44,10 +45,21 @@ export const mutableHandlers = {
 }
 
 // 例1
-// let target = {
-//     name : 'tianpeixin',
-//     get alias() {
-//         // 使用Reflect.get访问时这里的this会改为proxy代理对象
-//         return this.alias
-//     }
-// }
+let target = {
+    name : 'tianpeixin',
+    get alias() {
+        // 使用Reflect.get访问时这里的this会改为proxy代理对象
+        return this.name
+    }
+}
+
+let proxy1 = new Proxy(target,{
+    get(target,key,receiver) {
+        let res = Reflect.get(target,key,receiver)
+        console.log(res)
+        return res
+    }
+})
+
+proxy1.name
+proxy1.alias

@@ -11,6 +11,7 @@
 <body>
     <div id="app"></div>
     <script src="./dist/reactivity.global.js"></script>
+     <!-- <script src="../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script> -->
     <script>
         let { effect, reactive } = VueReactivity
         let testRes = {
@@ -1831,14 +1832,18 @@
         })
         state2.testData = testRes.data
         effect(() => {
+            console.log('执行',state2.testData)
             app.innerHTML = state2.testData.list[1].promotionLabels
         })
 
         setTimeout(() => {
             for (let i = 0; i < testRes.data.list.length; i++) {
-                testRes.data.list[i].promotionLabels = 111 // 源对象改变
+                testRes.data.list[i].promotionLabels = 111 // 源对象的值改变
             }
-            state2.testData.list = testRes.data // 不会更新 应该原内存地址的值也改变了，set中对比变化时相等会跳过更新
+            state2.testData = testRes.data // 不会更新 指向的还是原先的内存地址。set中对比变化时相等会跳过更新
+            state2.testData.list = testRes.data.list // 不会更新 因为原内存地址的值也改变了，set中对比变化时相等会跳过更新
+            state2.testData.list[1].promotionLabels = testRes.data.list[1].promotionLabels // 不会更新 因为原内存地址的值也改变了，set中对比变化时相等会跳过更新
+            state2.testData.list[1].promotionLabels = 111 //不会更新。 但如果把for in中的改变操作去掉，直接在此行改变，是会更新的。原因同上（原内存地址中的值没有变）。
         }, 1000)
 
     </script>
