@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+    </div>
+    <div id="other"></div>
+    <script src="./dist/reactivity.global.js"></script>
+    <!-- <script src="../../node_modules/vue/dist/vue.global.js"></script> -->
+    <script>
+        let { watch, effect,reactive,ref,reative } = VueReactivity; 
+        // let { watch,reactive,effect,ref } = Vue;
+
+        let state = reactive({
+            name : 'tianpeixin',
+            age : 26,
+            job : {
+                 job1 : 'aaa'
+            }
+        })
+        // watch 第三个参数( deep是当第一个参数使用函数时有用，会把函数返回的值再进行深度遍历一次
+        // 如果第一个参数是对象，那么加不加deep都是一样的，默认就会进行一次深度遍历)
+
+        watch(() => state,(newValue,oldValue) => {
+            console.log('watch执行一次',newValue,oldValue)
+        },{
+            deep:true
+        })
+        // watch(() => state,(newValue,oldValue) => {
+        //     console.log('watch执行一次',newValue,oldValue)
+        // })
+        // watch(state,(newValue,oldValue) => {
+        //     console.log('watch执行一次',newValue,oldValue)
+        // })
+        // watch(state,(newValue,oldValue) => {
+        //     console.log('watch执行一次',newValue,oldValue)
+        // },{
+        //     deep:true
+        // })
+
+        setTimeout(() => {
+            state.job.job1 = '123123'
+        },500)
+
+    </script>
+</body>
+</html>

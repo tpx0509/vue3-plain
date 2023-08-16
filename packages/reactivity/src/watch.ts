@@ -10,15 +10,23 @@ function traversal(value,set = new Set()) {
          return value
      }
      set.add(value)
-     for(let key in value) {
-        traversal(value[key],set)
-     }
+     if (Array.isArray(value)) {
+        for (let i = 0; i < value.length; i++) {
+            traversal(value[i], set)
+        }
+      }else {
+        for(let key in value) {
+            traversal(value[key],set)
+        }  
+      }
+     
      return value;
 }
 
 
 type WatchOptions = {
-     immediate : boolean
+     immediate : boolean,
+     deep : boolean
 }
 export function watch(source,cb,options={} as WatchOptions) {
     let getter;
@@ -31,6 +39,12 @@ export function watch(source,cb,options={} as WatchOptions) {
     }else if(isFunction(source)) {
         getter = source
     }
+
+    if(options.deep && getter) {
+        const baseGetter = getter
+        getter = () => traversal(baseGetter())
+    }
+
     // 回调函数包装一次，因为要保存新值和老值
     let oldValue;
     let clean;
