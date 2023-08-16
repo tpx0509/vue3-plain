@@ -18,7 +18,41 @@
     <script src="./dist/reactivity.global.js"></script>
     <!-- <script src="../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script> -->
     <script>
-        let { effect, reactive } = VueReactivity
+        let { effect, reactive,ref,computed } = VueReactivity
+
+        const aa = ref(1)
+
+        const bb = computed(() => {
+            // 测试： vue的computed在effect函数中使用时，并没有做异步更新。但如果在开发中template中使用，是做到了异步更新。
+            // 但可以自几通过effect第二个参数，options的scheduler调度器来实现
+             console.log('执行')
+             return aa.value + 'c'
+        })
+        
+
+        setTimeout(() => {
+            aa.value++
+            aa.value++
+            aa.value++
+            aa.value++
+            aa.value++
+        })
+        effect(() => {
+            console.log(bb.value)
+        },{
+         scheduler() {
+            console.log('执行')
+         }
+        })
+        
+        aa.value++
+        aa.value++
+        aa.value++
+        aa.value++
+        aa.value++
+        aa.value++
+    
+
         // 简单测试
         // let state = reactive({
         //      age : 25
