@@ -1,4 +1,4 @@
-import { reactive } from './reactive';
+import { isReactive, reactive } from './reactive';
 import { isObject } from './../../shared/src/index';
 import { track,trigger } from "./effect"
 export const enum ReactiveFlags {
@@ -6,7 +6,7 @@ export const enum ReactiveFlags {
     RAW = '__v_raw'
 }
 export const mutableHandlers = {
-    get(target,key,receiver) {
+    get(target,key,receiver) {    
         // 给代理对象添加一个标识
         if(key === ReactiveFlags.IS_REACTIVE) {
             return true
@@ -29,12 +29,18 @@ export const mutableHandlers = {
     },
     set(target,key,value,receiver) {
         let oldValue = target[key]
-        let result = Reflect.set(target,key,value,receiver)
 
-        console.log(target,receiver,receiver[ReactiveFlags.RAW])
+        // fix: 数据污染问题
+        // 如果 value 是响应式数据，就意味着设置到原始对象上的也是响应式数据，我们把响应式数据设置到原始数据上的行为称为数据污染。
+        // 只要发现即将要设置的值是响应式数据，那么就通过 raw 属性获取原始数据，再把原始数据设置到 target 上
+        let setValue = isReactive(value) ? value[ReactiveFlags.RAW] : value
+
+        let result = Reflect.set(target,key,setValue,receiver)
+
+        // console.log(target,receiver,receiver[ReactiveFlags.RAW])
         
         if(receiver[ReactiveFlags.RAW] === target) {// 屏蔽由原型引起的更新
-            console.log('oldValue,value',oldValue,value)
+            // console.log('oldValue,value',oldValue,value)
             if(oldValue !== value && (oldValue === oldValue || value === value)) {
                 // 触发effect
                 trigger(target,key,value,oldValue,'set')
@@ -45,21 +51,21 @@ export const mutableHandlers = {
 }
 
 // 例1
-let target = {
-    name : 'tianpeixin',
-    get alias() {
-        // 使用Reflect.get访问时这里的this会改为proxy代理对象
-        return this.name
-    }
-}
+// let target = {
+//     name : 'tianpeixin',
+//     get alias() {
+//         // 使用Reflect.get访问时这里的this会改为proxy代理对象
+//         return this.name
+//     }
+// }
 
-let proxy1 = new Proxy(target,{
-    get(target,key,receiver) {
-        let res = Reflect.get(target,key,receiver)
-        console.log(res)
-        return res
-    }
-})
+// let proxy1 = new Proxy(target,{
+//     get(target,key,receiver) {
+//         let res = Reflect.get(target,key,receiver)
+//         console.log(res)
+//         return res
+//     }
+// })
 
-proxy1.name
-proxy1.alias
+// proxy1.name
+// proxy1.alias

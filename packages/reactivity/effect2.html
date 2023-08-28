@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据污染问题</title>
+</head>
+<body>
+    <div id="app">
+
+        <div id="div1">div1</div>
+        <div id="div2">div2</div>
+        <div id="div3">div3</div>
+        <div id="div4">div4</div>
+    </div>
+    <div id="other"></div>
+    <!-- <script src="./dist/reactivity.global.js"></script> -->
+    <script src="../../node_modules/@vue/reactivity/dist/reactivity.global.js"></script>
+    <script>
+        let { effect, reactive,ref,computed } = VueReactivity
+
+        let obj = {}
+        // o1是obj的代理对象
+        let o1 = reactive(obj)
+        // o2是又一个代理对象
+        let o2 = reactive({ name : 'o2'})
+        // 为o1设置一个o2属性，值是o2
+        o1.o2 = o2
+
+        effect(() => { 
+            // 注意这里通过原始数据访问o2
+            console.log(obj.o2.name)
+            
+        })
+        // 注意 这里通过原始数据obj修改o2的name
+        obj.o2.name = 'obj change'
+        // 按理不应该触发响应，因为操作的是原始数据
+        // 原始数据不应该具有响应式数据的能力，否则就意味着用户既可以操作原始数据，
+        // 又能够操作响应式数据，这样一来代码就乱套了。
+        // 解决方法在baseHandler的set中
+        console.log(obj)
+        console.log(o1)
+    </script>
+</body>
+</html>
